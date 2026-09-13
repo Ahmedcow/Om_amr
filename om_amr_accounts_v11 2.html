@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Om Amr — Accounts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#16302B;
+  --ink-soft:#24463D;
+  --paper:#F1EDE2;
+  --card:#FFFFFF;
+  --brass:#A9812F;
+  --brass-dark:#8C6B26;
+  --burgundy:#7A2A2E;
+  --sage:#4B6B57;
+  --text:#20241F;
+  --text-soft:#666F63;
+  --line:#DED7C4;
+  --radius:10px;
+  --serif:'Fraunces', Georgia, serif;
+  --sans:'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono:'IBM Plex Mono', 'Courier New', monospace;
+}
+*{box-sizing:border-box;}
+[hidden]{display:none !important;}
+html,body{margin:0;padding:0;min-height:100%;}
+body{font-family:var(--sans);background:var(--paper);color:var(--text);-webkit-font-smoothing:antialiased;}
+button{font-family:inherit;cursor:pointer;}
+input,select{font-family:inherit;}
+h1,h2,h3{font-family:var(--serif);}
+
+/* Lock screen */
+#lock-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,var(--ink) 0%,var(--ink-soft) 100%);padding:24px;}
+.lock-card{background:var(--card);border-radius:14px;padding:40px 36px;max-width:360px;width:100%;box-shadow:0 30px 60px rgba(0,0,0,0.35);}
+.lock-logo{font-size:32px;color:var(--ink);margin:0 0 4px;font-weight:600;}
+.lock-sub{color:var(--text-soft);margin:0 0 28px;font-size:14px;}
+.lock-card input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:8px;font-size:15px;margin-bottom:12px;}
+.lock-card button{width:100%;padding:12px 14px;border:none;border-radius:8px;background:var(--brass);color:#fff;font-size:15px;font-weight:600;}
+.lock-card button:hover{background:var(--brass-dark);}
+.lock-error{color:var(--burgundy);font-size:13px;margin:0 0 14px;min-height:16px;}
+.lock-note{color:var(--text-soft);font-size:12px;margin:18px 0 0;line-height:1.5;}
+
+/* App shell */
+#app{display:flex;min-height:100vh;}
+.sidebar{width:230px;flex-shrink:0;background:var(--ink);color:#EFE9D8;display:flex;flex-direction:column;padding:28px 20px;}
+.sidebar-logo{font-size:23px;margin:0;color:#fff;font-weight:600;}
+.sidebar-sub{font-size:12px;color:#B9C4BC;margin:2px 0 32px;}
+.nav{display:flex;flex-direction:column;gap:4px;flex:1;}
+.nav button{text-align:left;background:none;border:none;color:#D8DFD8;padding:10px 12px;border-radius:8px;font-size:14px;}
+.nav button:hover{background:rgba(255,255,255,0.08);}
+.nav button.active{background:var(--brass);color:#fff;font-weight:600;}
+.sidebar-foot{display:flex;flex-direction:column;gap:4px;border-top:1px solid rgba(255,255,255,0.14);padding-top:16px;}
+.sidebar-foot button{text-align:left;background:none;border:none;color:#B9C4BC;padding:8px 12px;font-size:13px;border-radius:8px;}
+.sidebar-foot button:hover{background:rgba(255,255,255,0.08);color:#fff;}
+
+.main{flex:1;padding:32px 40px;max-width:980px;}
+.page-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:6px;}
+.page-header h2{font-size:25px;margin:0;color:var(--ink);font-weight:600;}
+.page-date{color:var(--text-soft);font-size:13px;}
+
+/* Dashboard */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.stat-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:0 1px 2px rgba(20,30,20,0.04);}
+.stat-label{display:block;font-size:12px;color:var(--text-soft);margin-bottom:8px;}
+.stat-value{font-size:22px;font-weight:600;color:var(--ink);}
+.mono{font-family:var(--mono);}
+.text-burgundy{color:var(--burgundy) !important;}
+
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;margin-bottom:20px;box-shadow:0 1px 2px rgba(20,30,20,0.04);}
+.panel h3{font-size:16px;margin:0 0 14px;color:var(--ink);font-weight:600;}
+
+.bars{display:flex;flex-direction:column;}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:13px;}
+.bar-label{width:110px;flex-shrink:0;color:var(--text-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bar-track{flex:1;background:var(--paper);border-radius:6px;height:10px;overflow:hidden;}
+.bar-fill{height:100%;background:var(--brass);border-radius:6px;}
+.bar-value{width:88px;text-align:right;font-family:var(--mono);font-size:12px;color:var(--ink);flex-shrink:0;}
+
+/* Tables */
+.table-scroll{overflow-x:auto;}
+.data-table{width:100%;border-collapse:collapse;font-size:13.5px;}
+.data-table th{text-align:left;padding:8px 10px;border-bottom:2px solid var(--line);color:var(--text-soft);font-weight:600;font-size:12px;}
+.data-table td{padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap;}
+.row-actions button{background:none;border:1px solid var(--line);border-radius:6px;padding:4px 8px;margin-right:4px;font-size:12px;}
+.row-actions .btn-danger{border-color:var(--burgundy);color:var(--burgundy);}
+
+.tag{padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:600;white-space:nowrap;}
+.tag-active{background:#E3EEE7;color:var(--sage);}
+.tag-upcoming{background:#F1E7CE;color:var(--brass-dark);}
+.tag-done{background:#ECEAE3;color:var(--text-soft);}
+
+/* Structure tree */
+.tree-toolbar{margin-bottom:16px;}
+.tree-node{margin-bottom:12px;}
+.tree-row{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px;flex-wrap:wrap;box-shadow:0 1px 2px rgba(20,30,20,0.03);}
+.tree-name{font-weight:600;color:var(--ink);flex-shrink:0;}
+.tree-meta{font-size:12px;color:var(--text-soft);flex:1;min-width:80px;}
+.tree-actions{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;}
+.tree-actions button{background:none;border:1px solid var(--line);border-radius:6px;padding:5px 9px;font-size:12px;}
+.tree-actions .btn-danger{border-color:var(--burgundy);color:var(--burgundy);}
+.tree-children{margin-left:20px;padding-left:14px;border-left:2px solid var(--line);margin-top:8px;}
+.room-row{background:#FBFAF6;}
+.bed-row{background:#F7F5EF;cursor:pointer;}
+.tree-empty{font-size:12.5px;color:var(--text-soft);margin:6px 0 6px 4px;}
+.bed-history{margin:8px 0 14px 4px;}
+
+/* Rent, announcements and reports */
+.announcement{
+  background:#FFF7DE;border:1px solid #E5CF91;border-left:4px solid var(--brass);
+  border-radius:10px;padding:13px 15px;margin-bottom:16px;
+}
+.announcement strong{color:var(--ink);}
+.announcement p{margin:4px 0 0;font-size:13px;color:var(--text-soft);}
+.announcement-list{display:flex;flex-direction:column;gap:8px;}
+.report-toolbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-bottom:18px;}
+.report-toolbar .field{margin:0;min-width:160px;}
+.report-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.phone{font-family:var(--mono);}
+.rent-due{color:var(--burgundy);font-weight:600;}
+.rent-ok{color:var(--sage);font-weight:600;}
+@media(max-width:760px){
+  .report-toolbar .field{min-width:140px;flex:1;}
+  .report-actions{width:100%;}
+}
+
+/* Improvements */
+[hidden]{display:none !important;}
+.modal-overlay{align-items:center;}
+.modal{display:flex;flex-direction:column;}
+.modal-actions{position:sticky;bottom:0;background:#fff;padding-top:12px;border-top:1px solid var(--line);z-index:2;}
+.modal-actions #modal-save{display:inline-flex !important;visibility:visible !important;opacity:1 !important;background:var(--brass) !important;color:#fff !important;min-width:90px;justify-content:center;}
+.sidebar .nav button{white-space:nowrap;}
+.person-photo{width:46px;height:46px;border-radius:50%;object-fit:cover;border:1px solid var(--line);background:var(--paper);vertical-align:middle;}
+.photo-placeholder{width:46px;height:46px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--paper);color:var(--text-soft);font-size:11px;border:1px solid var(--line);}
+.people-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;}
+.department-cost-panel{margin-top:16px;}
+.panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;}
+.cost-summary{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:12px 0;margin:12px 0;}
+.announcement-card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--brass);border-radius:10px;padding:16px;margin-bottom:10px;}
+.announcement-card h3{margin:0 0 6px;font-size:16px;}
+.announcement-card p{margin:4px 0;color:var(--text-soft);font-size:13px;}
+@media print{
+  .report-print-area{display:block !important;}
+}
+@media print{
+  body{background:#fff;}
+  #lock-screen,.sidebar,.page-header,.no-print,#toast{display:none !important;}
+  #app{display:block !important;}
+  .main{max-width:none !important;padding:0 !important;}
+  .panel{box-shadow:none;border:none;}
+  .report-print-area{display:block !important;}
+  #app{display:block !important;min-height:0;}
+  .main{max-width:none;padding:0;}
+  .panel,.stat-card{box-shadow:none;}
+  .print-title{display:block !important;}
+  .table-scroll{overflow:visible;}
+  .data-table{font-size:11px;}
+}
+.print-title{display:none;}
+
+/* Buttons */
+.btn-primary{background:var(--brass);border:none;color:#fff;padding:9px 16px;border-radius:8px;font-size:13.5px;font-weight:600;}
+.btn-primary:hover{background:var(--brass-dark);}
+
+/* Bookings toolbar */
+.toolbar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
+.toolbar input,.toolbar select{padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-size:13.5px;}
+.toolbar input{flex:1;min-width:160px;}
+
+.empty{text-align:center;padding:28px 10px;color:var(--text-soft);}
+.empty-title{font-weight:600;color:var(--ink);margin:0 0 4px;}
+.empty-body{margin:0;font-size:13px;}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(20,30,26,0.5);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;}
+.modal{background:#fff;border-radius:12px;padding:26px 26px 20px;width:100%;max-width:420px;max-height:88vh;overflow-y:auto;}
+.modal h3{margin:0 0 18px;color:var(--ink);font-size:19px;}
+.field{margin-bottom:14px;display:flex;flex-direction:column;gap:6px;}
+.field label{font-size:12.5px;color:var(--text-soft);}
+.field input,.field select{padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:14px;}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:6px;}
+.modal-actions button{padding:9px 16px;border-radius:8px;font-size:13.5px;border:1px solid var(--line);background:#fff;}
+.modal-actions .btn-primary{border:none;}
+
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:8px;font-size:13.5px;opacity:0;transition:all .25s ease;pointer-events:none;z-index:200;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+@media(max-width:760px){
+  #app{flex-direction:column;}
+  .sidebar{width:100%;flex-direction:row;align-items:center;padding:14px 16px;gap:16px;overflow-x:auto;}
+  .sidebar-logo{font-size:18px;}
+  .sidebar-sub{display:none;}
+  .nav{flex-direction:row;flex:none;}
+  .sidebar-foot{flex-direction:row;border-top:none;border-left:1px solid rgba(255,255,255,0.16);padding-top:0;padding-left:12px;margin-left:auto;}
+  .main{padding:20px 16px;}
+  .stat-grid{grid-template-columns:repeat(2,1fr);}
+  .tree-children{margin-left:8px;padding-left:10px;}
+  .bar-label{width:72px;}
+  .bar-value{width:72px;}
+}
+
+.photo-download{display:block;margin-top:6px;font-size:11px;padding:4px 7px}.photo-preview{margin-top:8px}.person-photo-large{width:120px;height:120px;object-fit:cover;border-radius:10px;display:block;border:1px solid rgba(0,0,0,.12)}.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.summary-line{margin-top:12px}.person-photo{width:52px;height:52px;object-fit:cover;border-radius:8px;display:block}.photo-placeholder{font-size:12px;opacity:.65}
+</style>
+</head>
+<body>
+
+<div id="lock-screen">
+  <div class="lock-card">
+    <p class="lock-logo">Om Amr</p>
+    <p class="lock-sub">Accounts ledger</p>
+    <input type="email" id="auth-email" placeholder="Email" autocomplete="username">
+    <input type="password" id="pw-input" placeholder="Password" autocomplete="current-password">
+    <p class="lock-error" id="pw-error"></p>
+    <button id="pw-submit">Sign in</button>
+    <p class="lock-note">Your account is protected by Supabase Authentication. Your ledger data is stored in the cloud database.</p>
+  </div>
+</div>
+
+<div id="app" hidden>
+  <div class="sidebar">
+    <p class="sidebar-logo" id="hotel-name-label">Om Amr</p>
+    <p class="sidebar-sub">Accounts ledger</p>
+    <div class="nav">
+      <button data-tab="dashboard">Dashboard</button>
+      <button data-tab="structure">Rooms &amp; beds</button>
+      <button data-tab="departments">Departments</button>
+      <button data-tab="bookings">Residents</button>
+      <button data-tab="reports">Reports</button>
+      <button data-tab="announcements">Announcements</button>
+    </div>
+    <div class="sidebar-foot">
+      <button id="btn-settings">Settings</button>
+      <button id="btn-lock">Lock</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="page-header">
+      <h2 id="page-title">Dashboard</h2>
+      <span class="page-date" id="page-date"></span>
+    </div>
+    <div id="content"><p class="empty-body">Loading your ledger…</p></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay" hidden>
+  <div class="modal">
+    <h3 id="modal-title"></h3>
+    <div id="modal-fields"></div>
+    <div class="modal-actions">
+      <button id="modal-cancel">Cancel</button>
+      <button id="modal-save" class="btn-primary">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ================= SUPABASE CONFIG =================
+const SUPABASE_URL = 'https://ksaxiqwqszbibdwrvdxa.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_31n4tynAm8cl5BUWQJO3QQ_glOLvHfX';
+const CLOUD_TABLE = 'app_data';
+const CLOUD_ROW_ID = 'main';
+let accessToken = localStorage.getItem('om_amr_access_token') || '';
+
+let state = {
+  settings: { hotelName: 'Om Amr', currency: '$' },
+  structure: { departments: [], rooms: [], beds: [] },
+  bookings: [],
+  people: [],
+  departmentCosts: [],
+  rentPayments: []
+};
+let currentTab = 'dashboard';
+let bookingFilter = { q: '', status: 'all' };
+let modalOnSave = null;
+
+function $(sel, root){ return (root||document).querySelector(sel); }
+function $$(sel, root){ return Array.from((root||document).querySelectorAll(sel)); }
+function uid(prefix){ return prefix+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function todayISO(offset){ const d=new Date(); d.setDate(d.getDate()+(offset||0)); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function normalizeState(){
+  if(!state.settings)state.settings={hotelName:'Om Amr',currency:'$'};
+  if(!state.structure)state.structure={departments:[],rooms:[],beds:[]};
+  if(!Array.isArray(state.structure.departments))state.structure.departments=[];
+  if(!Array.isArray(state.structure.rooms))state.structure.rooms=[];
+  if(!Array.isArray(state.structure.beds))state.structure.beds=[];
+  if(!Array.isArray(state.bookings))state.bookings=[];
+  if(!Array.isArray(state.people))state.people=[];
+  if(!Array.isArray(state.departmentCosts))state.departmentCosts=[];
+  if(!Array.isArray(state.rentPayments))state.rentPayments=[];
+  state.structure.departments.forEach(function(d){if(d.serviceCost==null)d.serviceCost=0;});
+  state.structure.beds.forEach(function(b){if(b.monthlyRent==null)b.monthlyRent=0;});
+  state.bookings.forEach(function(b){
+    if(b.phone==null)b.phone=''; if(b.faculty==null)b.faculty='';
+    if(b.monthlyRent==null)b.monthlyRent=Number((state.structure.beds.find(function(x){return x.id===b.bedId;})||{}).monthlyRent||0);
+    if(b.securityDeposit==null)b.securityDeposit=0; if(b.photo==null)b.photo='';
+  });
+}
+function fmtMoney(n){ const sym=state.settings.currency||'$'; const val=Number(n||0); return sym+val.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtDate(d){ if(!d) return '—'; const dt=new Date(d+'T00:00:00'); if(isNaN(dt)) return '—'; return dt.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}); }
+function nightsBetween(ci,co){ const a=new Date(ci+'T00:00:00'), b=new Date(co+'T00:00:00'); const diff=Math.round((b-a)/86400000); return diff>0?diff:0; }
+function status(b){ const today=todayISO(0); if(today < b.checkIn) return 'Upcoming'; if(today < b.checkOut) return 'In-house'; return 'Checked out'; }
+function bedById(id){ return state.structure.beds.find(function(b){ return b.id===id; }); }
+function roomById(id){ return state.structure.rooms.find(function(r){ return r.id===id; }); }
+function deptById(id){ return state.structure.departments.find(function(d){ return d.id===id; }); }
+function roomOfBed(bedId){ const bd=bedById(bedId); return bd?roomById(bd.roomId):null; }
+function activeResidentForBed(bedId, onDate){ const date=onDate||todayISO(0); return state.bookings.filter(function(b){return b.bedId===bedId&&b.checkIn<=date&&date<b.checkOut;}).sort(function(a,b){return (b.checkIn||'').localeCompare(a.checkIn||'');})[0]||null; }
+function compressPhoto(file,cb){
+  if(!file){cb('');return;}
+  const reader=new FileReader();
+  reader.onload=function(){const img=new Image();img.onload=function(){
+    const max=500,scale=Math.min(1,max/Math.max(img.width,img.height));
+    const c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.width*scale));c.height=Math.max(1,Math.round(img.height*scale));
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);cb(c.toDataURL('image/jpeg',0.78));
+  };img.onerror=function(){cb('');};img.src=reader.result;};
+  reader.readAsDataURL(file);
+}
+function rentForBooking(b){const bd=bedById(b.bedId);return Number(b.monthlyRent!=null?b.monthlyRent:(bd?bd.monthlyRent:0))||0;}
+function monthlyDueDate(checkIn,key){const day=Number((checkIn||'').slice(8,10))||1;return key+'-'+String(Math.min(day,daysInMonth(key))).padStart(2,'0');}
+function rentPaymentForMonth(bookingId,key){return (state.rentPayments||[]).filter(function(p){return p.bookingId===bookingId&&p.month===key;}).reduce(function(s,p){return s+Number(p.amount||0);},0);}
+function rentDueInfo(bedId,key){
+  const bd=bedById(bedId); if(!bd)return null;
+  const bookings=state.bookings.filter(function(b){return b.bedId===bedId;}).sort(function(a,b){return (a.checkIn||'').localeCompare(b.checkIn||'');});
+  for(const resident of bookings){
+    if(!resident.checkIn||!resident.checkOut) continue;
+    const day=Number((resident.checkIn||'').slice(8,10))||1;
+    const p=key.split('-'); const y=Number(p[0]),m=Number(p[1]);
+    const clamped=Math.min(day,new Date(y,m,0).getDate());
+    const dueDate=y+'-'+String(m).padStart(2,'0')+'-'+String(clamped).padStart(2,'0');
+    if(resident.checkIn<=dueDate && dueDate<resident.checkOut){
+      const amount=Number(resident.monthlyRent||bd.monthlyRent||0); if(!amount)return null;
+      const paid=rentPaymentForMonth(resident.id,key);
+      return {bed:bd,resident:resident,dueDate:dueDate,amount:amount,paid:paid,remaining:Math.max(0,amount-paid)};
+    }
+  }
+  return null;
+}
+function rentAnnouncements(){
+  const today=todayISO(0),key=monthKey(today),items=[];
+  state.structure.beds.forEach(function(bd){
+    const i=rentDueInfo(bd.id,key); if(!i||i.remaining<=0)return;
+    const days=Math.round((new Date(i.dueDate+'T00:00:00')-new Date(today+'T00:00:00'))/86400000);
+    if(days<=0 || days<=7) items.push({type:days<=0?'due':'soon',bookingId:i.resident.id,dueDate:i.dueDate,amount:i.remaining,text:i.resident.guest+' — '+bd.label+' rent of '+fmtMoney(i.remaining)+' is '+(days<=0?'due/overdue.':'due on '+fmtDate(i.dueDate)+'.')});
+  });
+  return items;
+}
+function confirmRentPayment(a){
+  const b=state.bookings.find(function(x){return x.id===a.bookingId;}); if(!b)return;
+  const bed=bedById(b.bedId),room=bed?roomById(bed.roomId):null,key=monthKey(a.dueDate),existing=rentPaymentForMonth(b.id,key),due=Number(a.amount||0);
+  const amount=Math.max(0,due-existing); if(amount<=0){renderApp();return;}
+  state.rentPayments.push({id:uid('rentpay'),bookingId:b.id,personId:b.personId||'',departmentId:room?room.departmentId:'',amount:amount,paymentDate:todayISO(0),month:key,type:'monthly-rent',createdAt:new Date().toISOString()});
+  b.paid=Number(b.paid||0)+amount;
+  setKey('om-amr-rent-payments',state.rentPayments); persistBookings(); saveCloud().then(function(){renderApp();toast('Payment confirmed and added to department balance');});
+}
+function monthKey(date){ return (date||todayISO(0)).slice(0,7); }
+function monthLabel(key){ const p=key.split('-'); if(p.length!==2)return key; return new Date(Number(p[0]),Number(p[1])-1,1).toLocaleDateString(undefined,{month:'long',year:'numeric'}); }
+function daysInMonth(key){ const p=key.split('-'); return new Date(Number(p[0]),Number(p[1]),0).getDate(); }
+function toast(msg){ const t=$('#toast'); if(!t)return; t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove('show');},2200); }
+
+// ---------- local storage ----------
+async function getKey(key,fallback){ try{const raw=localStorage.getItem(key);return raw?JSON.parse(raw):fallback;}catch(e){return fallback;} }
+async function setKey(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true;}catch(e){toast('Could not save locally.');return false;}}
+
+// ---------- direct Supabase REST API (no external SDK required) ----------
+async function supabaseFetch(path, options){
+  const headers=Object.assign({'apikey':SUPABASE_PUBLISHABLE_KEY,'Content-Type':'application/json'}, options&&options.headers||{});
+  if(accessToken) headers.Authorization='Bearer '+accessToken;
+  const res=await fetch(SUPABASE_URL+path,Object.assign({},options||{}, {headers:headers}));
+  const text=await res.text();
+  let data=null; try{data=text?JSON.parse(text):null;}catch(e){data=text;}
+  if(!res.ok){
+    const msg=(data&&data.msg)||(data&&data.message)||(data&&data.error_description)||(typeof data==='string'?data:'HTTP '+res.status);
+    throw new Error(msg);
+  }
+  return data;
+}
+
+async function signIn(email,password){
+  const data=await supabaseFetch('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email:email,password:password})});
+  if(!data||!data.access_token) throw new Error('Supabase did not return a login token.');
+  accessToken=data.access_token;
+  localStorage.setItem('om_amr_access_token',accessToken);
+  if(data.refresh_token) localStorage.setItem('om_amr_refresh_token',data.refresh_token);
+  return data;
+}
+async function signOut(){ accessToken='';localStorage.removeItem('om_amr_access_token');localStorage.removeItem('om_amr_refresh_token'); }
+async function loadCloud(){
+  if(!accessToken)return false;
+  const data=await supabaseFetch('/rest/v1/'+CLOUD_TABLE+'?id=eq.'+encodeURIComponent(CLOUD_ROW_ID)+'&select=data&limit=1',{method:'GET'});
+  if(Array.isArray(data)&&data.length&&data[0].data){
+    const cloudState=data[0].data||{};
+    if(!Array.isArray(cloudState.people) && Array.isArray(state.people)) cloudState.people=state.people;
+    if(!Array.isArray(cloudState.departmentCosts) && Array.isArray(state.departmentCosts)) cloudState.departmentCosts=state.departmentCosts;
+    if(!Array.isArray(cloudState.rentPayments) && Array.isArray(state.rentPayments)) cloudState.rentPayments=state.rentPayments;
+    state=Object.assign(state,cloudState);normalizeState();
+    await setKey('om-amr-settings',state.settings);await setKey('om-amr-structure',state.structure);await setKey('om-amr-bookings',state.bookings);await setKey('om-amr-people',state.people);await setKey('om-amr-department-costs',state.departmentCosts);await setKey('om-amr-rent-payments',state.rentPayments);await setKey('om-amr-fines',state.fines||[]);
+    if(!Array.isArray(data[0].data.people) || !Array.isArray(data[0].data.departmentCosts)) await saveCloud();
+    return true;
+  }
+  return false;
+}
+async function saveCloud(){
+  if(!accessToken)return false;
+  try{
+    await supabaseFetch('/rest/v1/'+CLOUD_TABLE,{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({id:CLOUD_ROW_ID,data:{settings:state.settings,structure:state.structure,bookings:state.bookings,people:state.people,departmentCosts:state.departmentCosts,rentPayments:state.rentPayments,fines:state.fines||[]},updated_at:new Date().toISOString()})});
+    return true;
+  }catch(e){console.error(e);toast('Saved locally, but cloud save failed: '+e.message);return false;}
+}
+function persistSettings(){setKey('om-amr-settings',state.settings);saveCloud();}
+function persistStructure(){setKey('om-amr-structure',state.structure);saveCloud();}
+function persistBookings(){setKey('om-amr-bookings',state.bookings);saveCloud();}
+function persistPeople(){setKey('om-amr-people',state.people);saveCloud();}
+function persistDepartmentCosts(){setKey('om-amr-department-costs',state.departmentCosts);saveCloud();}
+
+async function loadAll(){
+  const results=await Promise.all([getKey('om-amr-settings',{hotelName:'Om Amr',currency:'$'}),getKey('om-amr-structure',{departments:[],rooms:[],beds:[]}),getKey('om-amr-bookings',[])]);
+  state.settings=results[0]||{hotelName:'Om Amr',currency:'$'};state.structure=results[1]||{departments:[],rooms:[],beds:[]};state.bookings=results[2]||[];state.people=JSON.parse(localStorage.getItem('om-amr-people')||'[]');state.departmentCosts=JSON.parse(localStorage.getItem('om-amr-department-costs')||'[]');state.rentPayments=JSON.parse(localStorage.getItem('om-amr-rent-payments')||'[]');state.fines=JSON.parse(localStorage.getItem('om-amr-fines')||'[]');normalizeState();
+  try{const cloudLoaded=await loadCloud(); if(!cloudLoaded && accessToken){ await saveCloud(); toast('All local data uploaded to Supabase.'); }}catch(e){console.error('cloud load failed',e);toast('Cloud data unavailable: '+e.message);}
+}
+
+// ---------- login ----------
+async function tryUnlock(){
+  const email=$('#auth-email').value.trim(),password=$('#pw-input').value,err=$('#pw-error'),btn=$('#pw-submit');
+  if(!email||!password){err.textContent='Enter your email and password.';return;}
+  btn.disabled=true;err.textContent='Connecting to Supabase…';
+  try{
+    await signIn(email,password);
+    err.textContent='Signed in. Loading ledger…';
+    $('#lock-screen').hidden=true;$('#app').hidden=false;
+    await loadAll();
+    $('#hotel-name-label').textContent=state.settings.hotelName||'Om Amr';document.title=(state.settings.hotelName||'Om Amr')+' — Accounts';renderApp();
+  }catch(e){console.error('Sign in error',e);err.textContent='Sign in failed: '+e.message;accessToken='';localStorage.removeItem('om_amr_access_token');}
+  finally{btn.disabled=false;}
+}
+$('#pw-submit').addEventListener('click',tryUnlock);
+$('#pw-input').addEventListener('keydown',function(e){if(e.key==='Enter')tryUnlock();});
+$('#auth-email').addEventListener('keydown',function(e){if(e.key==='Enter')$('#pw-input').focus();});
+window.addEventListener('load',async function(){
+  if(!accessToken)return;
+  try{await loadAll();$('#lock-screen').hidden=true;$('#app').hidden=false;$('#hotel-name-label').textContent=state.settings.hotelName||'Om Amr';document.title=(state.settings.hotelName||'Om Amr')+' — Accounts';renderApp();}
+  catch(e){console.error('session restore failed',e);await signOut();}
+});
+$('#btn-lock').addEventListener('click',async function(){await signOut();$('#app').hidden=true;$('#lock-screen').hidden=false;$('#pw-input').value='';$('#pw-input').focus();});
+
+/* ---------- nav / render dispatch ---------- */
+$$('.nav button').forEach(function(b){
+  b.addEventListener('click', function(){ currentTab = b.dataset.tab; renderApp(); });
+});
+$('#btn-settings').addEventListener('click', function(){
+  openModal('Settings', [
+    { key:'hotelName', label:'Hotel name', default: state.settings.hotelName },
+    { key:'currency', label:'Currency symbol', default: state.settings.currency }
+  ], function(vals){
+    state.settings.hotelName = vals.hotelName.trim() || 'Om Amr';
+    state.settings.currency = vals.currency.trim() || '$';
+    persistSettings();
+    $('#hotel-name-label').textContent = state.settings.hotelName;
+    document.title = state.settings.hotelName + ' — Accounts';
+    renderApp();
+    toast('Settings saved');
+  });
+});
+
+function updateDate(){ $('#page-date').textContent = new Date().toLocaleDateString(undefined,{weekday:'long', day:'numeric', month:'long', year:'numeric'}); }
+
+
+function normalizeFineData(){
+  if(!Array.isArray(state.fines)) state.fines=[];
+  state.fines=state.fines.map(function(f){
+    f.id=f.id||('fine-'+Date.now()+'-'+Math.random().toString(16).slice(2));
+    f.personId=f.personId||''; f.amount=Number(f.amount||0); f.paidAmount=Number(f.paidAmount||0);
+    f.reason=f.reason||''; f.date=f.date||todayISO(0); f.notes=f.notes||'';
+    f.status=f.paidAmount>=f.amount&&f.amount>0?'paid':'unpaid'; return f;
+  });
+}
+function fineOutstanding(f){return Math.max(0,Number(f.amount||0)-Number(f.paidAmount||0));}
+function fineSummary(){return (state.fines||[]).reduce(function(a,f){a.total+=Number(f.amount||0);a.paid+=Number(f.paidAmount||0);a.outstanding+=fineOutstanding(f);return a;},{total:0,paid:0,outstanding:0});}
+normalizeFineData();
+
+function renderFines(container){
+ const people=Array.isArray(state.people)?state.people:[], s=fineSummary();
+ container.innerHTML='<div class="page-head"><div><h2>Fines</h2><p>Track resident and faculty fines separately from rent and security money.</p></div><button class="btn-primary" data-action="add-fine">Add fine</button></div>'+
+ '<div class="stat-grid"><div class="stat-card"><span class="stat-label">Total fines</span><span class="stat-value mono">'+fmtMoney(s.total)+'</span></div><div class="stat-card"><span class="stat-label">Collected</span><span class="stat-value mono">'+fmtMoney(s.paid)+'</span></div><div class="stat-card"><span class="stat-label">Outstanding</span><span class="stat-value mono">'+fmtMoney(s.outstanding)+'</span></div></div>'+
+ '<div class="panel">'+((state.fines||[]).length?'<div class="table-scroll"><table class="data-table"><thead><tr><th>Person</th><th>Type</th><th>Reason</th><th>Date</th><th>Fine</th><th>Paid</th><th>Remaining</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+
+ state.fines.map(function(f){const p=people.find(function(x){return x.id===f.personId;})||{};return '<tr><td>'+esc(p.name||p.guest||'Unknown')+'</td><td>'+esc(p.type||'Resident')+'</td><td>'+esc(f.reason||'—')+'</td><td>'+fmtDate(f.date)+'</td><td class="mono">'+fmtMoney(f.amount)+'</td><td class="mono">'+fmtMoney(f.paidAmount||0)+'</td><td class="mono">'+fmtMoney(fineOutstanding(f))+'</td><td>'+esc(fineOutstanding(f)<=0?'Paid':'Unpaid')+'</td><td><button data-action="edit-fine" data-id="'+esc(f.id)+'">Edit</button> <button class="danger" data-action="delete-fine" data-id="'+esc(f.id)+'">Delete</button></td></tr>';}).join('')+'</tbody></table></div>':emptyState('No fines yet','Add a fine for any resident or faculty member.'))+'</div>';
+}
+function openFineModal(existing,personId){
+ const people=Array.isArray(state.people)?state.people:[]; if(!people.length){toast('Add a resident or faculty member first.');return;}
+ const modal=document.createElement('div'); modal.className='modal-backdrop';
+ modal.innerHTML='<div class="modal"><div class="modal-head"><h3>'+(existing?'Edit fine':'Add fine')+'</h3><button type="button" class="modal-close">×</button></div>'+
+ '<div class="field"><label>Resident / Faculty</label><select id="fine-person">'+people.map(function(p){return '<option value="'+esc(p.id)+'" '+((existing&&existing.personId===p.id)||(!existing&&personId===p.id)?'selected':'')+'>'+esc(p.name||p.guest||'Unnamed')+' — '+esc(p.type||'Resident')+'</option>';}).join('')+'</select></div>'+
+ '<div class="field"><label>Fine amount</label><input id="fine-amount" type="number" min="0" step="0.01" value="'+esc(existing?existing.amount:0)+'"></div>'+
+ '<div class="field"><label>Amount paid</label><input id="fine-paid" type="number" min="0" step="0.01" value="'+esc(existing?(existing.paidAmount||0):0)+'"></div>'+
+ '<div class="field"><label>Reason</label><input id="fine-reason" value="'+esc(existing?(existing.reason||''):'')+'"></div>'+
+ '<div class="field"><label>Date</label><input id="fine-date" type="date" value="'+esc(existing?(existing.date||todayISO(0)):todayISO(0))+'"></div>'+
+ '<div class="field"><label>Notes</label><textarea id="fine-notes">'+esc(existing?(existing.notes||''):'')+'</textarea></div>'+
+ '<div class="modal-actions"><button type="button" class="modal-close">Cancel</button><button type="button" class="btn-primary" id="save-fine">Save fine</button></div></div>';
+ document.body.appendChild(modal); modal.querySelectorAll('.modal-close').forEach(function(b){b.onclick=function(){modal.remove();};});
+ modal.querySelector('#save-fine').onclick=function(){const amount=Math.max(0,Number(modal.querySelector('#fine-amount').value||0)),paid=Math.max(0,Number(modal.querySelector('#fine-paid').value||0));if(!amount){toast('Enter a fine amount');return;}const f=existing||{id:'fine-'+Date.now()+'-'+Math.random().toString(16).slice(2)};f.personId=modal.querySelector('#fine-person').value;f.amount=amount;f.paidAmount=Math.min(paid,amount);f.reason=modal.querySelector('#fine-reason').value.trim();f.date=modal.querySelector('#fine-date').value||todayISO(0);f.notes=modal.querySelector('#fine-notes').value.trim();f.status=f.paidAmount>=f.amount?'paid':'unpaid';if(!existing)state.fines.push(f);setKey('om-amr-fines',state.fines||[]);saveCloud();modal.remove();renderApp();toast('Fine saved');};
+}
+
+function renderApp(){
+  $$('.nav button').forEach(function(b){ b.classList.toggle('active', b.dataset.tab===currentTab); });
+  $('#page-title').textContent = currentTab==='dashboard' ? 'Dashboard' : currentTab==='structure' ? 'Rooms & beds' : currentTab==='departments' ? 'Departments' : currentTab==='bookings' ? 'Residents' : currentTab==='reports' ? 'Reports' : currentTab==='announcements' ? 'Announcements' : currentTab==='fines' ? 'Fines' : 'Accounts';
+  updateDate();
+  const c = $('#content');
+  if(currentTab==='dashboard') renderDashboard(c);
+  else if(currentTab==='structure') renderStructure(c);
+  else if(currentTab==='departments') renderDepartments(c);
+  else if(currentTab==='bookings') renderBookings(c);
+  else if(currentTab==='reports') renderReports(c);
+  else if(currentTab==='announcements') renderAnnouncements(c);
+  else if(currentTab==='fines') renderFines(c);
+  else renderDashboard(c);
+}
+
+/* ---------- dashboard ---------- */
+function computeStats(){
+  const beds = state.structure.beds;
+  const bookings = state.bookings;
+  let totalRevenue = 0, totalOutstanding = 0, inHouse = 0;
+  const deptRevenue = {};
+  state.structure.departments.forEach(function(d){ deptRevenue[d.id]=0; });
+  bookings.forEach(function(b){
+    totalRevenue += Number(b.paid||0);
+    if(status(b)==='In-house') inHouse++;
+    const room = roomOfBed(b.bedId);
+    if(room){
+      if(room.price){
+        const due = nightsBetween(b.checkIn,b.checkOut)*Number(room.price);
+        const bal = due-Number(b.paid||0);
+        if(bal>0) totalOutstanding += bal;
+      }
+      deptRevenue[room.departmentId] = (deptRevenue[room.departmentId]||0) + Number(b.paid||0);
+    }
+  });
+  const occupancy = beds.length ? Math.round(inHouse/beds.length*100) : 0;
+  return { totalRevenue:totalRevenue, totalOutstanding:totalOutstanding, inHouse:inHouse, occupancy:occupancy, deptRevenue:deptRevenue, totalBeds:beds.length };
+}
+function monthlySeries(){
+  const map = {}, labels = [];
+  const now = new Date();
+  for(let i=5;i>=0;i--){
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    map[key] = 0;
+    labels.push({ key:key, label:d.toLocaleDateString(undefined,{month:'short'}) });
+  }
+  state.bookings.forEach(function(b){
+    const key = (b.checkIn||'').slice(0,7);
+    if(key in map) map[key] += Number(b.paid||0);
+  });
+  return labels.map(function(l){ return { label:l.label, value:map[l.key] }; });
+}
+function barChart(items){
+  if(!items.length) return '';
+  const max = Math.max(1, Math.max.apply(null, items.map(function(i){ return i.value; })));
+  return '<div class="bars">' + items.map(function(i){
+    const pct = Math.max(2, (i.value/max*100));
+    return '<div class="bar-row"><span class="bar-label">'+esc(i.label)+'</span><div class="bar-track"><div class="bar-fill" style="width:'+pct.toFixed(1)+'%"></div></div><span class="bar-value">'+fmtMoney(i.value)+'</span></div>';
+  }).join('') + '</div>';
+}
+function emptyState(title, body){
+  return '<div class="empty"><p class="empty-title">'+esc(title)+'</p><p class="empty-body">'+esc(body||'')+'</p></div>';
+}
+function recentBookingsTable(){
+  const list = state.bookings.slice().sort(function(a,b){ return (b.createdAt||'').localeCompare(a.createdAt||''); }).slice(0,8);
+  if(!list.length) return emptyState('No bookings yet','Add your first resident from the Residents tab.');
+  return '<div class="table-scroll"><table class="data-table"><thead><tr><th>Guest</th><th>Room / bed</th><th>Check-in</th><th>Check-out</th><th>Paid</th><th>Status</th></tr></thead><tbody>' +
+    list.map(function(b){
+      const bed = bedById(b.bedId), room = bed?roomById(bed.roomId):null, st = status(b);
+      const stClass = st==='In-house'?'tag-active':st==='Upcoming'?'tag-upcoming':'tag-done';
+      return '<tr><td>'+esc(b.guest)+'</td><td>'+(room?esc(room.number):'—')+(bed?' · '+esc(bed.label):'')+'</td><td>'+fmtDate(b.checkIn)+'</td><td>'+fmtDate(b.checkOut)+'</td><td class="mono">'+fmtMoney(b.paid)+'</td><td><span class="tag '+stClass+'">'+st+'</span></td></tr>';
+    }).join('') + '</tbody></table></div>';
+}
+function renderDashboard(container){
+  const s = computeStats();
+  const announcements = rentAnnouncements();
+  const noticeHtml = announcements.length
+    ? '<div class="announcement"><strong>Rent announcements</strong><div class="announcement-list">'+
+      announcements.map(function(a){ return '<p class="'+(a.type==='due'?'rent-due':'')+'">'+esc(a.text)+'</p>'; }).join('')+
+      '</div></div>'
+    : '';
+
+  const deptItems = state.structure.departments.map(function(d){ return { label:d.name, value:s.deptRevenue[d.id]||0 }; });
+  container.innerHTML =
+    noticeHtml +
+    '<div class="stat-grid">' +
+      '<div class="stat-card"><span class="stat-label">Total collected</span><span class="stat-value mono">'+fmtMoney(s.totalRevenue)+'</span></div>' +
+      '<div class="stat-card"><span class="stat-label">Outstanding balance</span><span class="stat-value mono'+(s.totalOutstanding>0?' text-burgundy':'')+'">'+fmtMoney(s.totalOutstanding)+'</span></div>' +
+      '<div class="stat-card"><span class="stat-label">In-house now</span><span class="stat-value mono">'+s.inHouse+' / '+s.totalBeds+'</span></div>' +
+      '<div class="stat-card"><span class="stat-label">Occupancy</span><span class="stat-value mono">'+s.occupancy+'%</span></div>' +
+    '</div>' +
+    '<div class="panel no-print"><h3>Rent reminders</h3><p class="empty-body">Rent announcements appear automatically when rent is due or within 7 days. You can also allow browser notifications.</p><button class="btn-primary" data-action="enable-rent-notifications">Enable notifications</button></div>' +
+    '<div class="panel no-print"><h3>Cloud database</h3><p class="empty-body">Connected to Supabase when configured. The website also keeps a local copy for offline recovery.</p></div><div class="panel no-print"><h3>Browser storage</h3><p class="empty-body">Your data is saved automatically in this browser. Use a backup before clearing browser data or changing devices.</p><div class="report-actions"><button class="btn-primary" data-action="export-data">Export backup</button><button data-action="import-data">Import backup</button></div><input id="backup-file" type="file" accept=".json,application/json" hidden></div>' +
+    '<div class="panel"><h3>Revenue by department</h3>' + (deptItems.length ? barChart(deptItems) : emptyState('No departments yet','Add a department in Rooms & beds to start grouping revenue.')) + '</div>' +
+    '<div class="panel"><h3>Last six months</h3>' + barChart(monthlySeries()) + '</div>' +
+    '<div class="panel"><h3>Recent bookings</h3>' + recentBookingsTable() + '</div>';
+}
+
+/* ---------- reports ---------- */
+function monthsInRange(from,to){
+  const out=[],p=from.split('-'),q=to.split('-');let y=Number(p[0]),m=Number(p[1]),ey=Number(q[0]),em=Number(q[1]);
+  while(y<ey||(y===ey&&m<=em)){out.push(y+'-'+String(m).padStart(2,'0'));m++;if(m===13){m=1;y++;}}return out;
+}
+function reportData(startKey,endKey){
+  const start=startKey+'-01',end=endKey+'-'+String(daysInMonth(endKey)).padStart(2,'0'),months=monthsInRange(startKey,endKey);
+  const bookings=state.bookings.filter(function(b){return (b.checkIn||'')<=end&&(b.checkOut||'')>=start;});
+  let collected=0,rentExpected=0,service=0,recordedCosts=0;
+  state.structure.departments.forEach(function(d){service+=Number(d.serviceCost||0)*months.length;});
+  state.departmentCosts.forEach(function(c){if(c.date>=start&&c.date<=end)recordedCosts+=Number(c.amount||0);});
+  state.bookings.forEach(function(b){if(b.checkIn>=start&&b.checkIn<=end)collected+=Number(b.paid||0);});
+  state.rentPayments.forEach(function(p){if(p.paymentDate>=start&&p.paymentDate<=end)collected+=Number(p.amount||0);});
+  state.structure.beds.forEach(function(bd){months.forEach(function(k){const r=activeResidentForBed(bd.id,k+'-01');if(r)rentExpected+=rentForBooking(r);});});
+  const dept=[];
+  state.structure.departments.forEach(function(d){
+    let income=0;
+    state.bookings.forEach(function(b){const room=roomOfBed(b.bedId);if(room&&room.departmentId===d.id&&b.checkIn>=start&&b.checkIn<=end)income+=Number(b.paid||0);});
+    state.rentPayments.forEach(function(p){if(p.paymentDate>=start&&p.paymentDate<=end&&p.departmentId===d.id)income+=Number(p.amount||0);});
+    const svc=Number(d.serviceCost||0)*months.length,costs=state.departmentCosts.filter(function(c){return c.departmentId===d.id&&c.date>=start&&c.date<=end;}).reduce(function(s,c){return s+Number(c.amount||0);},0);
+    dept.push({name:d.name,income:income,service:svc,costs:costs,net:income-svc-costs});
+  });
+  const rows=state.structure.beds.map(function(bd){const r=activeResidentForBed(bd.id,start),room=roomOfBed(bd.id),d=room?deptById(room.departmentId):null;return{bed:bd.label,rent:Number(bd.monthlyRent||0),resident:r?r.guest:'—',phone:r?r.phone:'',department:d?d.name:'—'};}).filter(function(r){return r.rent>0||r.resident!=='—';});
+  return{start,end,bookings,collected,rentExpected,service,recordedCosts,rows,dept};
+}
+function renderReports(container){
+  const now=monthKey(todayISO(0));
+  container.innerHTML =
+    '<div class="panel no-print"><h3>Print report</h3>'+
+    '<div class="report-toolbar">'+
+      '<div class="field"><label for="report-from">From month</label><input id="report-from" type="month" value="'+now+'"></div>'+
+      '<div class="field"><label for="report-to">To month</label><input id="report-to" type="month" value="'+now+'"></div>'+
+      '<div class="report-actions"><button class="btn-primary" data-action="print-report">Print report</button></div>'+
+    '</div><p class="empty-body">Choose one month for a monthly report, or any range when you need a wider report.</p></div>'+
+    '<div id="report-preview"></div>';
+  renderReportPreview();
+}
+function renderReportPreview(){
+  const wrap=$('#report-preview');if(!wrap)return;const from=$('#report-from').value,to=$('#report-to').value;
+  if(!from||!to||from>to){wrap.innerHTML=emptyState('Choose a valid date range','The start month must not be after the end month.');return;}
+  const r=reportData(from,to),fs=fineSummary();
+  wrap.innerHTML='<div class="panel"><h3 class="print-title">'+esc(state.settings.hotelName||'Om Amr')+' — Accounts report</h3><h3>Report: '+esc(monthLabel(from))+(from!==to?' to '+esc(monthLabel(to)):'')+'</h3>'+
+  '<div class="stat-grid"><div class="stat-card"><span class="stat-label">Collected rent</span><span class="stat-value mono">'+fmtMoney(r.collected)+'</span></div><div class="stat-card"><span class="stat-label">Expected rent</span><span class="stat-value mono">'+fmtMoney(r.rentExpected)+'</span></div><div class="stat-card"><span class="stat-label">Total costs</span><span class="stat-value mono">'+fmtMoney(r.service+r.recordedCosts)+'</span></div><div class="stat-card"><span class="stat-label">Outstanding fines</span><span class="stat-value mono">'+fmtMoney(fs.outstanding)+'</span></div></div>'+
+  '<h3>Residents and rent</h3>'+(r.rows.length?'<div class="table-scroll"><table class="data-table"><thead><tr><th>Department</th><th>Bed</th><th>Resident</th><th>Phone</th><th>Monthly rent</th></tr></thead><tbody>'+r.rows.map(function(x){return '<tr><td>'+esc(x.department)+'</td><td>'+esc(x.bed)+'</td><td>'+esc(x.resident)+'</td><td class="phone">'+esc(x.phone||'—')+'</td><td class="mono">'+fmtMoney(x.rent)+'</td></tr>';}).join('')+'</tbody></table></div>':emptyState('No residents','No residents or rent amounts were found.'))+
+  '<h3>Department balances</h3><div class="table-scroll"><table class="data-table"><thead><tr><th>Department</th><th>Rent income</th><th>Service cost</th><th>Other costs</th><th>Net balance</th></tr></thead><tbody>'+r.dept.map(function(d){return '<tr><td>'+esc(d.name)+'</td><td class="mono">'+fmtMoney(d.income)+'</td><td class="mono">'+fmtMoney(d.service)+'</td><td class="mono">'+fmtMoney(d.costs)+'</td><td class="mono">'+fmtMoney(d.net)+'</td></tr>';}).join('')+'</tbody></table></div>'+
+  '<h3>Bookings</h3>'+(r.bookings.length?'<div class="table-scroll"><table class="data-table"><thead><tr><th>Resident</th><th>Faculty</th><th>Phone</th><th>Check-in</th><th>Check-out</th><th>Rent paid</th><th>Security</th></tr></thead><tbody>'+r.bookings.map(function(x){return '<tr><td>'+esc(x.guest)+'</td><td>'+esc(x.faculty||'—')+'</td><td>'+esc(x.phone||'—')+'</td><td>'+fmtDate(x.checkIn)+'</td><td>'+fmtDate(x.checkOut)+'</td><td class="mono">'+fmtMoney(x.paid)+'</td><td class="mono">'+fmtMoney(x.securityDeposit||0)+'</td></tr>';}).join('')+'</tbody></table></div>':emptyState('No bookings','No bookings overlap the selected period.'))+
+  '<h3>Fines</h3><p>Total issued: '+fmtMoney(fs.total)+' · Collected: '+fmtMoney(fs.paid)+' · Outstanding: '+fmtMoney(fs.outstanding)+'</p></div>';
+}
+/* ---------- departments ---------- */
+function renderDepartments(container){
+  let html='<div class="people-toolbar"><button class="btn-primary" data-action="add-dept">Add department</button><button data-action="sync-all">Sync all data to Supabase</button></div>';
+  if(!state.structure.departments.length){container.innerHTML=html+'<div class="panel">'+emptyState('No departments yet','Add departments to organize rooms, beds, residents and monthly costs.')+'</div>';return;}
+  html+='<div class="panel"><div class="table-scroll"><table class="data-table"><thead><tr><th>Department</th><th>Rooms</th><th>Beds</th><th>Monthly service cost</th><th>Recorded costs</th><th></th></tr></thead><tbody>';
+  html+=state.structure.departments.map(function(d){const rooms=state.structure.rooms.filter(function(r){return r.departmentId===d.id;});const roomIds=rooms.map(function(r){return r.id;});const beds=state.structure.beds.filter(function(b){return roomIds.includes(b.roomId);});return '<tr><td>'+esc(d.name)+'</td><td>'+rooms.length+'</td><td>'+beds.length+'</td><td class="mono">'+fmtMoney(d.serviceCost||0)+'</td><td class="mono">'+fmtMoney(departmentCostTotal(d.id))+'</td><td class="row-actions"><button class="btn-primary" data-action="add-dept-cost" data-id="'+d.id+'">Costs</button><button data-action="edit-dept" data-id="'+d.id+'">Edit</button><button class="btn-danger" data-action="delete-dept" data-id="'+d.id+'">Delete</button></td></tr>';}).join('');
+  html+='</tbody></table></div></div>';
+  state.structure.departments.forEach(function(d){html+=renderDepartmentCostBlock(d);});
+  container.innerHTML=html;
+}
+function openDepartmentModal(editId){
+  const d=editId?deptById(editId):null;
+  openModal(d?'Edit department':'Add department',[
+    {key:'name',label:'Department name',default:d?d.name:''},
+    {key:'serviceCost',label:'Monthly service cost',type:'number',step:'0.01',default:d?(d.serviceCost||0):0}
+  ],function(vals){if(!vals.name.trim()){toast('Enter a department name');return false;}if(d){d.name=vals.name.trim();d.serviceCost=Number(vals.serviceCost)||0;}else state.structure.departments.push({id:uid('dept'),name:vals.name.trim(),serviceCost:Number(vals.serviceCost)||0});persistStructure();renderApp();toast(d?'Department updated':'Department added');});
+}
+
+/* ---------- department costs ---------- */
+function departmentCostTotal(deptId){
+  return (state.departmentCosts||[]).filter(function(c){return c.departmentId===deptId;}).reduce(function(sum,c){return sum+Number(c.amount||0);},0);
+}
+function renderDepartmentCostBlock(d){
+  const costs=(state.departmentCosts||[]).filter(function(c){return c.departmentId===d.id;}).sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});
+  let html='<div class="panel"><div class="section-head"><div><h3>'+esc(d.name)+' costs</h3><p class="empty-body">Record any cost charged to this department.</p></div><button class="btn-primary" data-action="add-dept-cost" data-id="'+d.id+'">Add cost</button></div>';
+  if(!costs.length) return html+emptyState('No recorded costs','Add a cost with its name, amount and notes.')+'</div>';
+  html+='<div class="table-scroll"><table class="data-table"><thead><tr><th>Cost name</th><th>Date</th><th>Amount</th><th>Notes</th><th></th></tr></thead><tbody>';
+  html+=costs.map(function(c){return '<tr><td>'+esc(c.name||c.description||'Cost')+'</td><td>'+fmtDate(c.date)+'</td><td class="mono">'+fmtMoney(c.amount)+'</td><td>'+esc(c.notes||'—')+'</td><td class="row-actions"><button data-action="edit-dept-cost" data-id="'+c.id+'" data-dept-id="'+d.id+'">Edit</button><button class="btn-danger" data-action="delete-dept-cost" data-id="'+c.id+'">Delete</button></td></tr>';}).join('');
+  html+='</tbody></table></div><p class="summary-line">Total recorded costs: <strong class="mono">'+fmtMoney(departmentCostTotal(d.id))+'</strong></p></div>';return html;
+}
+function openDepartmentCostModal(deptId,editId){
+  const d=deptById(deptId), existing=editId?(state.departmentCosts||[]).find(function(c){return c.id===editId;}):null;if(!d)return;
+  openModal(existing?'Edit department cost':'Add department cost',[
+    {key:'name',label:'Cost name',default:existing?(existing.name||existing.description||''):''},
+    {key:'amount',label:'Amount',type:'number',step:'0.01',default:existing?existing.amount:0},
+    {key:'date',label:'Date',type:'date',default:existing?existing.date:todayISO(0)},
+    {key:'notes',label:'Notes',type:'textarea',default:existing?existing.notes||'':''}
+  ],function(v){
+    if(!v.name.trim()){toast('Enter the cost name');return false;}
+    const amount=Math.max(0,Number(v.amount)||0);if(!amount){toast('Enter a cost amount');return false;}
+    if(existing){existing.name=v.name.trim();existing.description=v.name.trim();existing.amount=amount;existing.date=v.date||todayISO(0);existing.notes=v.notes.trim();}
+    else state.departmentCosts.push({id:uid('dcost'),departmentId:deptId,name:v.name.trim(),description:v.name.trim(),amount:amount,date:v.date||todayISO(0),notes:v.notes.trim(),createdAt:new Date().toISOString()});
+    persistDepartmentCosts();renderApp();toast(existing?'Cost updated':'Cost added');
+  });
+}
+
+/* ---------- announcements ---------- */
+function renderAnnouncements(container){
+  const items=rentAnnouncements();
+  let html='<div class="panel"><h3>Rent announcements</h3><p class="empty-body">Rent is due every month on the same day as the resident\'s check-in date. Confirming payment removes the announcement and adds the rent to the department balance.</p></div>';
+  if(!items.length)html+='<div class="panel">'+emptyState('No rent payments due','There are no unpaid monthly rent announcements right now.')+'</div>';
+  items.forEach(function(x){const b=state.bookings.find(function(q){return q.id===x.bookingId;}),bed=b?bedById(b.bedId):null,room=bed?roomById(bed.roomId):null,dept=room?deptById(room.departmentId):null;
+    html+='<div class="announcement-card"><h3>'+(x.type==='due'?'Rent due':'Upcoming rent')+'</h3><p>'+esc(x.text)+'</p><p class="empty-body">'+(dept?'Department: '+esc(dept.name)+' · ':'')+'Due: '+fmtDate(x.dueDate)+'</p><button class="btn-primary" data-action="confirm-rent" data-id="'+esc(x.bookingId)+'" data-amount="'+x.amount+'" data-due="'+esc(x.dueDate)+'">Confirm payment '+fmtMoney(x.amount)+'</button></div>';
+  });
+  container.innerHTML=html;
+}
+/* ---------- residents & faculty ---------- */
+function personById(id){ return state.people.find(function(p){return p.id===id;}); }
+function compressPhoto(file, cb){
+  const reader=new FileReader();
+  reader.onload=function(){
+    const img=new Image();
+    img.onload=function(){
+      const max=500, scale=Math.min(1,max/Math.max(img.width,img.height));
+      const canvas=document.createElement('canvas'); canvas.width=Math.max(1,Math.round(img.width*scale)); canvas.height=Math.max(1,Math.round(img.height*scale));
+      const ctx=canvas.getContext('2d'); ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      cb(canvas.toDataURL('image/jpeg',0.78));
+    };
+    img.src=reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+function renderPeople(container){
+  const people=state.people.slice().sort(function(a,b){return (a.name||'').localeCompare(b.name||'');});
+  let html='<div class="people-toolbar"><button class="btn-primary" data-action="add-person">Add resident / faculty</button></div>';
+  if(!people.length){html+='<div class="panel">'+emptyState('No people yet','Add a resident or faculty member and attach a photo. Photos are compressed and stored with the cloud database backup.')+'</div>';container.innerHTML=html;return;}
+  html+='<div class="panel"><div class="table-scroll"><table class="data-table"><thead><tr><th>Photo</th><th>Name</th><th>Type</th><th>Phone</th><th>Department</th><th></th></tr></thead><tbody>';
+  html+=people.map(function(p){const d=deptById(p.departmentId);return '<tr><td>'+(p.photo?'<img class="person-photo" src="'+p.photo+'" alt=""><button class="photo-download" data-action="download-person-photo" data-id="'+p.id+'">Download</button>':'<span class="photo-placeholder">No photo</span>')+'</td><td>'+esc(p.name)+'</td><td>'+esc(p.type||'Resident')+'</td><td class="phone">'+esc(p.phone||'—')+'</td><td>'+esc(d?d.name:'—')+'</td><td class="row-actions"><button data-action="edit-person" data-id="'+p.id+'">Edit</button><button class="btn-danger" data-action="delete-person" data-id="'+p.id+'">Delete</button></td></tr>';}).join('');
+  html+='</tbody></table></div></div>'; container.innerHTML=html;
+}
+function openPersonModal(editId){
+  const editing=editId?personById(editId):null;
+  const deptOptions=state.structure.departments.map(function(d){return {value:d.id,label:d.name};});
+  openModal(editing?'Edit person':'Add resident / faculty',[
+    {key:'name',label:'Full name',default:editing?editing.name:''},
+    {key:'type',label:'Type',type:'select',options:[{value:'Resident',label:'Resident'},{value:'Faculty',label:'Faculty'}],default:editing?(editing.type||'Resident'):'Resident'},
+    {key:'phone',label:'Phone',default:editing?editing.phone||'':''},
+    {key:'departmentId',label:'Department',type:'select',options:[{value:'',label:'No department'}].concat(deptOptions),default:editing?editing.departmentId||'':''},
+    {key:'photo',label:'Photo',type:'file',default:''}
+  ],function(vals){
+    if(!vals.name.trim()){toast('Enter the name');return false;}
+    const file=document.getElementById('mf_photo').files[0];
+    function finish(photo){
+      if(editing){editing.name=vals.name.trim();editing.type=vals.type;editing.phone=vals.phone.trim();editing.departmentId=vals.departmentId; if(photo) editing.photo=photo;}
+      else state.people.push({id:uid('person'),name:vals.name.trim(),type:vals.type,phone:vals.phone.trim(),departmentId:vals.departmentId,photo:photo||'',createdAt:new Date().toISOString()});
+      persistPeople(); renderApp(); toast(editing?'Person updated':'Person added');
+    }
+    if(file) compressPhoto(file,finish); else finish('');
+    return true;
+  });
+}
+
+/* ---------- structure ---------- */
+function stayHistoryTable(stays){
+  return '<div class="table-scroll"><table class="data-table"><thead><tr><th>Guest</th><th>Check-in</th><th>Check-out</th><th>Paid</th><th>Status</th></tr></thead><tbody>' +
+    stays.map(function(b){
+      const st = status(b);
+      const stClass = st==='In-house'?'tag-active':st==='Upcoming'?'tag-upcoming':'tag-done';
+      return '<tr><td>'+esc(b.guest)+'</td><td>'+fmtDate(b.checkIn)+'</td><td>'+fmtDate(b.checkOut)+'</td><td class="mono">'+fmtMoney(b.paid)+'</td><td><span class="tag '+stClass+'">'+st+'</span></td></tr>';
+    }).join('') + '</tbody></table></div>';
+}
+function renderStructure(container){
+  let html = '<div class="tree-toolbar"><button class="btn-primary" data-action="add-dept">Add department</button></div>';
+  if(!state.structure.departments.length){
+    html += emptyState('No departments yet','Create a department such as a building, floor or wing, then add rooms and beds inside it.');
+  }
+  state.structure.departments.forEach(function(d){
+    const rooms = state.structure.rooms.filter(function(r){ return r.departmentId===d.id; });
+    html += '<div class="tree-node"><div class="tree-row"><span class="tree-name">'+esc(d.name)+'</span><span class="tree-meta">'+rooms.length+' room'+(rooms.length!==1?'s':'')+'</span><div class="tree-actions">'+
+      '<button data-action="add-room" data-id="'+d.id+'">Add room</button>'+
+      '<button data-action="rename-dept" data-id="'+d.id+'">Rename</button>'+
+      '<button class="btn-danger" data-action="delete-dept" data-id="'+d.id+'">Delete</button>'+
+      '</div></div><div class="tree-children">';
+    if(!rooms.length){ html += '<p class="tree-empty">No rooms in this department yet.</p>'; }
+    rooms.forEach(function(r){
+      const beds = state.structure.beds.filter(function(bd){ return bd.roomId===r.id; });
+      html += '<div class="tree-node"><div class="tree-row room-row"><span class="tree-name">Room '+esc(r.number)+(r.type?' · '+esc(r.type):'')+'</span><span class="tree-meta">'+(r.price?fmtMoney(r.price)+'/night':'no rate set')+' · '+beds.length+' bed'+(beds.length!==1?'s':'')+'</span><div class="tree-actions">'+
+        '<button data-action="add-bed" data-id="'+r.id+'">Add bed</button>'+
+        '<button data-action="edit-room" data-id="'+r.id+'">Edit</button>'+
+        '<button class="btn-danger" data-action="delete-room" data-id="'+r.id+'">Delete</button>'+
+        '</div></div><div class="tree-children">';
+      if(!beds.length){ html += '<p class="tree-empty">No beds yet.</p>'; }
+      beds.forEach(function(bd){
+        const stays = state.bookings.filter(function(b){ return b.bedId===bd.id; }).sort(function(a,b){ return (b.checkIn||'').localeCompare(a.checkIn||''); });
+        html += '<div class="tree-node"><div class="tree-row bed-row" data-action="toggle-bed" data-id="'+bd.id+'"><span class="tree-name">'+esc(bd.label)+'</span><span class="tree-meta">'+stays.length+' stay'+(stays.length!==1?'s':'')+' · '+(Number(bd.monthlyRent||0)?fmtMoney(bd.monthlyRent)+'/month':'no monthly rent')+'</span><div class="tree-actions">'+
+          '<button data-action="quick-book" data-id="'+bd.id+'">New booking</button>'+
+          '<button data-action="rename-bed" data-id="'+bd.id+'">Rename</button>'+
+          '<button class="btn-danger" data-action="delete-bed" data-id="'+bd.id+'">Delete</button>'+
+          '</div></div><div class="bed-history" id="hist-'+bd.id+'" hidden>'+(stays.length?stayHistoryTable(stays):'<p class="tree-empty">No stays recorded for this bed.</p>')+'</div></div>';
+      });
+      html += '</div></div>';
+    });
+    html += '</div></div>';
+  });
+  container.innerHTML = html;
+}
+
+/* ---------- bookings ---------- */
+function renderBookings(container){
+  container.innerHTML =
+    '<div class="toolbar">' +
+      '<button class="btn-primary" data-action="new-booking">Add resident</button>' +
+      '<input type="text" id="booking-search" placeholder="Search resident, room or department" value="'+esc(bookingFilter.q)+'">' +
+      '<select id="booking-status">' +
+        '<option value="all">All stays</option>' +
+        '<option value="Upcoming">Upcoming</option>' +
+        '<option value="In-house">In-house</option>' +
+        '<option value="Checked out">Checked out</option>' +
+      '</select>' +
+    '</div>' +
+    '<div id="booking-table-wrap"></div>';
+  $('#booking-status').value = bookingFilter.status;
+  renderBookingTable();
+}
+function renderBookingTable(){
+  const wrap = $('#booking-table-wrap');
+  if(!wrap) return;
+  let list = state.bookings.slice();
+  if(bookingFilter.status !== 'all') list = list.filter(function(b){ return status(b)===bookingFilter.status; });
+  if(bookingFilter.q.trim()){
+    const q = bookingFilter.q.trim().toLowerCase();
+    list = list.filter(function(b){
+      const bed = bedById(b.bedId), room = bed?roomById(bed.roomId):null, dept = room?deptById(room.departmentId):null;
+      return (b.guest||'').toLowerCase().includes(q) || (b.phone||'').toLowerCase().includes(q) || (room && (room.number+'').toLowerCase().includes(q)) || (dept && dept.name.toLowerCase().includes(q));
+    });
+  }
+  list.sort(function(a,b){ return (b.checkIn||'').localeCompare(a.checkIn||''); });
+  if(!list.length){
+    wrap.innerHTML = emptyState('No residents found', state.bookings.length ? 'Try a different search or filter.' : 'Add your first resident to start tracking stays and payments.');
+    return;
+  }
+  wrap.innerHTML = '<div class="table-scroll"><table class="data-table"><thead><tr><th>Photo</th><th>Resident</th><th>Phone</th><th>Department</th><th>Room / bed</th><th>Check-in</th><th>Check-out</th><th>Paid</th><th>Balance</th><th>Status</th><th></th></tr></thead><tbody>' +
+    list.map(bookingRow).join('') + '</tbody></table></div>';
+}
+function bookingRow(b){
+  const bed = bedById(b.bedId), room = bed?roomById(bed.roomId):null, dept = room?deptById(room.departmentId):null;
+  const due = (room && room.price) ? nightsBetween(b.checkIn,b.checkOut)*Number(room.price) : null;
+  const bal = due!=null ? due-Number(b.paid||0) : null;
+  const st = status(b);
+  const stClass = st==='In-house'?'tag-active':st==='Upcoming'?'tag-upcoming':'tag-done';
+  return '<tr><td>'+(b.photo?'<img class="person-photo" src="'+b.photo+'" alt=""><button class="photo-download" data-action="download-photo" data-id="'+b.id+'">Download photo</button>':'—')+'</td><td>'+esc(b.guest)+'</td><td class="phone">'+(b.phone?esc(b.phone):'—')+'</td><td>'+(dept?esc(dept.name):'—')+'</td><td>'+(room?esc(room.number):'—')+(bed?' · '+esc(bed.label):'')+'</td><td>'+fmtDate(b.checkIn)+'</td><td>'+fmtDate(b.checkOut)+'</td><td class="mono">'+fmtMoney(b.paid)+'</td><td class="mono'+(bal!=null&&bal>0?' text-burgundy':'')+'">'+(bal!=null?fmtMoney(bal):'—')+'</td><td><span class="tag '+stClass+'">'+st+'</span></td><td class="row-actions"><button data-action="edit-booking" data-id="'+b.id+'">Edit</button><button data-action="add-fine-for-booking" data-id="'+b.id+'">Fine</button><button class="btn-danger" data-action="delete-booking" data-id="'+b.id+'">Delete</button></td></tr>';
+}
+function bedIsBooked(bedId,checkIn,checkOut,excludeId){
+  return state.bookings.some(function(b){return b.bedId===bedId&&b.id!==excludeId&&b.checkIn<checkOut&&checkIn<b.checkOut;});
+}
+function bedAvailabilityLabel(bd){
+  const today=todayISO(0);
+  const active=state.bookings.filter(function(b){return b.bedId===bd.id&&b.checkOut>today;}).sort(function(a,b){return (a.checkIn||'').localeCompare(b.checkIn||'');})[0];
+  return active ? 'Unavailable until '+fmtDate(active.checkOut)+' — '+active.guest : 'Available';
+}
+
+function openBookingModal(prefillBedId,editId){
+  if(!state.structure.beds.length){toast('Add a room and bed first, in Rooms & beds');return;}
+  const options=[];
+  state.structure.departments.forEach(function(d){state.structure.rooms.filter(function(r){return r.departmentId===d.id;}).forEach(function(r){state.structure.beds.filter(function(bd){return bd.roomId===r.id;}).forEach(function(bd){options.push({value:bd.id,label:d.name+' — Room '+r.number+' ('+bd.label+') — '+bedAvailabilityLabel(bd),disabled:!!activeResidentForBed(bd.id,todayISO(0))});});});});
+  if(!options.length){toast('Add a room and bed first, in Rooms & beds');return;}
+  const editing=editId?state.bookings.find(function(b){return b.id===editId;}):null;
+  const firstAvailable=options.find(function(o){return !o.disabled;});
+  if(!editing&&!firstAvailable){toast('All rooms/beds are currently unavailable');return;}
+  const selected=editing?bedById(editing.bedId):bedById(prefillBedId||firstAvailable.value);
+  const d=editing||{bedId:prefillBedId||options[0].value,guest:'',phone:'',faculty:'',monthlyRent:selected?selected.monthlyRent:0,securityDeposit:0,photo:'',checkIn:todayISO(0),checkOut:todayISO(1),paid:0,notes:''};
+  openModal(editing?'Edit booking':'Book room',[
+    {key:'bedId',label:'Room / bed',type:'select',options:options,default:d.bedId},
+    {key:'guest',label:'Name of resident',default:d.guest||''},
+    {key:'phone',label:'Phone number',default:d.phone||''},
+    {key:'faculty',label:'Faculty',default:d.faculty||''},
+    {key:'monthlyRent',label:'Monthly rent',type:'number',step:'0.01',default:rentForBooking(d)},
+    {key:'securityDeposit',label:'Secure money / deposit',type:'number',step:'0.01',default:d.securityDeposit||0},
+    {key:'photo',label:'Resident photo',type:'file',accept:'image/*'},
+    {key:'checkIn',label:'Check-in date',type:'date',default:d.checkIn},
+    {key:'checkOut',label:'Check-out date',type:'date',default:d.checkOut},
+    {key:'paid',label:'Initial rent paid',type:'number',step:'0.01',default:d.paid||0},
+    {key:'notes',label:'Notes (optional)',type:'textarea',default:d.notes||''}
+  ],function(v){
+    if(!v.guest.trim()){toast('Enter the resident name');return false;}
+    if(!v.checkIn||!v.checkOut||v.checkOut<=v.checkIn){toast('Check-out must be after check-in');return false;}
+    if(bedIsBooked(v.bedId,v.checkIn,v.checkOut,editing?editing.id:null)){toast('This room/bed is unavailable for these dates');return false;}
+    const rent=Math.max(0,Number(v.monthlyRent)||0),security=Math.max(0,Number(v.securityDeposit)||0),bd=bedById(v.bedId);
+    if(bd)bd.monthlyRent=rent;
+    if(editing){
+      editing.bedId=v.bedId;editing.guest=v.guest.trim();editing.phone=v.phone.trim();editing.faculty=v.faculty.trim();
+      editing.monthlyRent=rent;editing.securityDeposit=security;editing.checkIn=v.checkIn;editing.checkOut=v.checkOut;editing.paid=Number(v.paid)||0;editing.notes=v.notes.trim();if(v.photo)editing.photo=v.photo;
+      const p=state.people.find(function(x){return x.bookingId===editing.id;});if(p){p.name=editing.guest;p.phone=editing.phone;p.faculty=editing.faculty;if(v.photo)p.photo=v.photo;}
+    }else{
+      const booking={id:uid('bk'),bedId:v.bedId,guest:v.guest.trim(),phone:v.phone.trim(),faculty:v.faculty.trim(),monthlyRent:rent,securityDeposit:security,photo:v.photo||'',checkIn:v.checkIn,checkOut:v.checkOut,paid:Number(v.paid)||0,notes:v.notes.trim(),createdAt:new Date().toISOString()};
+      state.bookings.push(booking);state.people.push({id:uid('person'),bookingId:booking.id,name:booking.guest,type:'Resident',phone:booking.phone,faculty:booking.faculty,photo:booking.photo,createdAt:new Date().toISOString()});
+    }
+    persistStructure();persistBookings();persistPeople();saveCloud();renderApp();toast(editing?'Booking updated':'Booking added');
+  });
+}
+
+/* ---------- modal ---------- */
+function openModal(title, fields, onSave){
+  $('#modal-title').textContent = title;
+  const container = $('#modal-fields');
+  container.innerHTML = '';
+  fields.forEach(function(f){
+    const wrap = document.createElement('div'); wrap.className = 'field';
+    const label = document.createElement('label'); label.textContent = f.label; label.htmlFor = 'mf_'+f.key;
+    let input;
+    if(f.type==='select'){
+      input = document.createElement('select');
+      (f.options||[]).forEach(function(o){ const opt=document.createElement('option'); opt.value=o.value; opt.textContent=o.label; if(o.disabled) opt.disabled=true; input.appendChild(opt); });
+      if(f.default!=null) input.value = f.default;
+    } else if(f.type==='textarea') {
+      input = document.createElement('textarea');
+      input.rows = 3;
+      if(f.default!=null) input.value = f.default;
+    } else {
+      input = document.createElement('input');
+      input.type = f.type||'text';
+      if(f.type==='file') input.accept=f.accept||'image/*';
+      if(f.step) input.step = f.step;
+      if(f.default!=null && f.type!=='file') input.value = f.default;
+    }
+    input.id = 'mf_'+f.key;
+    wrap.appendChild(label); wrap.appendChild(input);
+    if(f.type==='file'){
+      const preview=document.createElement('div'); preview.className='photo-preview';
+      if(f.default){preview.innerHTML='<img class="person-photo-large" src="'+f.default+'" alt="Current photo">';}
+      wrap.appendChild(preview);
+      input.addEventListener('change',function(){
+        const file=input.files&&input.files[0];
+        if(!file){preview.innerHTML=f.default?'<img class="person-photo-large" src="'+f.default+'" alt="Current photo">':'';return;}
+        const reader=new FileReader();reader.onload=function(){preview.innerHTML='<img class="person-photo-large" src="'+reader.result+'" alt="Preview">';};reader.readAsDataURL(file);
+      });
+    }
+    container.appendChild(wrap);
+  });
+  $('#modal-overlay').hidden = false;
+  const firstInput = container.querySelector('input,select');
+  if(firstInput) setTimeout(function(){ firstInput.focus(); }, 30);
+  modalOnSave = function(){
+    const values={};
+    fields.forEach(function(f){const el=document.getElementById('mf_'+f.key);values[f.key]=(f.type==='file'?(el.dataset.photoData||''):el.value);});
+    return onSave(values);
+  };
+  fields.filter(function(f){return f.type==='file';}).forEach(function(f){
+    const el=document.getElementById('mf_'+f.key);
+    el.addEventListener('change',function(){if(el.files&&el.files[0])compressPhoto(el.files[0],function(data){el.dataset.photoData=data;});});
+  });
+}
+function closeModal(){ $('#modal-overlay').hidden = true; modalOnSave = null; }
+$('#modal-cancel').addEventListener('click', closeModal);
+$('#modal-save').addEventListener('click', function(){ const ok = modalOnSave ? modalOnSave() : true; if(ok!==false) closeModal(); });
+$('#modal-overlay').addEventListener('click', function(e){ if(e.target.id==='modal-overlay') closeModal(); });
+document.addEventListener('keydown', function(e){ if(e.key==='Escape' && !$('#modal-overlay').hidden) closeModal(); });
+
+/* ---------- delegated actions on #content ---------- */
+function armDelete(el, action, id){
+  if(el.dataset.armed==='1'){
+    performDelete(action, id);
+  } else {
+    $$('[data-armed="1"]').forEach(function(b){ b.textContent = b.dataset.orig||b.textContent; delete b.dataset.armed; });
+    el.dataset.armed = '1'; el.dataset.orig = el.textContent; el.textContent = 'Confirm delete';
+    setTimeout(function(){ if(el.isConnected && el.dataset.armed==='1'){ el.textContent = el.dataset.orig; delete el.dataset.armed; } }, 4000);
+  }
+}
+function performDelete(action, id){
+  if(action==='add-fine'){openFineModal();return;}
+  if(action==='edit-fine'){const f=(state.fines||[]).find(function(x){return x.id===id;});if(f)openFineModal(f);return;}
+  if(action==='delete-fine'){if(confirm('Delete this fine?')){state.fines=(state.fines||[]).filter(function(x){return x.id!==id;});setKey('om-amr-fines',state.fines);saveCloud();renderApp();toast('Fine deleted');}return;}
+  if(action==='print-report'){
+    renderReportPreview();
+    setTimeout(function(){ window.print(); }, 50);
+    return;
+  }
+  if(action==='add-person'){ openPersonModal(null); return; }
+  if(action==='edit-person'){ openPersonModal(id); return; }
+  if(action==='download-photo'){ const b=state.bookings.find(function(x){return x.id===id;}); if(b&&b.photo){ const a=document.createElement('a');a.href=b.photo;a.download=(b.guest||'resident')+'-photo.jpg';document.body.appendChild(a);a.click();a.remove(); } return; }
+  if(action==='download-person-photo'){ const p=personById(id); if(p&&p.photo){ const a=document.createElement('a');a.href=p.photo;a.download=(p.name||'resident')+'-photo.jpg';document.body.appendChild(a);a.click();a.remove(); } return; }
+  if(action==='delete-person'){ state.people=state.people.filter(function(p){return p.id!==id;}); persistPeople(); renderApp(); toast('Deleted'); return; }
+  if(action==='enable-rent-notifications'){
+    if(!('Notification' in window)){ toast('Browser notifications are not supported here'); return; }
+    Notification.requestPermission().then(function(p){ toast(p==='granted'?'Rent notifications enabled':'Notifications were not enabled'); });
+    return;
+  }
+  if(action==='export-data'){
+    const backup = {
+      version: 5,
+      exportedAt: new Date().toISOString(),
+      settings: state.settings,
+      structure: state.structure,
+      bookings: state.bookings,
+      people: state.people,
+      fines: state.fines,
+      departmentCosts: state.departmentCosts,
+      rentPayments: state.rentPayments
+    };
+    const blob = new Blob([JSON.stringify(backup,null,2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'om-amr-accounts-backup-'+todayISO(0)+'.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+    toast('Backup exported');
+    return;
+  }
+  if(action==='import-data'){
+    const input=$('#backup-file');
+    if(input) input.click();
+    return;
+  }
+  if(action==='delete-dept-cost'){ state.departmentCosts=state.departmentCosts.filter(function(c){return c.id!==id;}); persistDepartmentCosts(); renderApp(); toast('Cost deleted'); return; }
+  if(action==='delete-dept'){
+    const roomIds = state.structure.rooms.filter(function(r){ return r.departmentId===id; }).map(function(r){ return r.id; });
+    const bedIds = state.structure.beds.filter(function(b){ return roomIds.includes(b.roomId); }).map(function(b){ return b.id; });
+    state.structure.departments = state.structure.departments.filter(function(d){ return d.id!==id; });
+    state.structure.rooms = state.structure.rooms.filter(function(r){ return r.departmentId!==id; });
+    state.structure.beds = state.structure.beds.filter(function(b){ return !roomIds.includes(b.roomId); });
+    state.bookings = state.bookings.filter(function(b){ return !bedIds.includes(b.bedId); });
+    state.departmentCosts = state.departmentCosts.filter(function(c){ return c.departmentId!==id; });
+    persistStructure(); persistBookings(); persistDepartmentCosts();
+  } else if(action==='delete-room'){
+    const bedIds = state.structure.beds.filter(function(b){ return b.roomId===id; }).map(function(b){ return b.id; });
+    state.structure.rooms = state.structure.rooms.filter(function(r){ return r.id!==id; });
+    state.structure.beds = state.structure.beds.filter(function(b){ return b.roomId!==id; });
+    state.bookings = state.bookings.filter(function(b){ return !bedIds.includes(b.bedId); });
+    persistStructure(); persistBookings();
+  } else if(action==='delete-bed'){
+    state.structure.beds = state.structure.beds.filter(function(b){ return b.id!==id; });
+    state.bookings = state.bookings.filter(function(b){ return b.bedId!==id; });
+    persistStructure(); persistBookings();
+  } else if(action==='delete-booking'){
+    state.bookings = state.bookings.filter(function(b){ return b.id!==id; });
+    persistBookings();
+  }
+  toast('Deleted');
+  renderApp();
+}
+function onContentClick(e){
+  const el = e.target.closest('[data-action]');
+  if(!el) return;
+  const action = el.dataset.action, id = el.dataset.id;
+  if(action.indexOf('delete-')===0){ armDelete(el, action, id); return; }
+  if(action==='print-report'){ renderReportPreview(); setTimeout(function(){ window.print(); },100); return; }
+  if(action==='enable-rent-notifications'){ performDelete(action,id); return; }
+  if(action==='export-data'){ performDelete(action,id); return; }
+  if(action==='import-data'){ performDelete(action,id); return; }
+  if(action==='add-person'){ openPersonModal(null); return; }
+  if(action==='edit-person'){ openPersonModal(id); return; }
+  if(action==='download-photo'){ const b=state.bookings.find(function(x){return x.id===id;}); if(b&&b.photo){ const a=document.createElement('a');a.href=b.photo;a.download=(b.guest||'resident')+'-photo.jpg';document.body.appendChild(a);a.click();a.remove(); } return; }
+  if(action==='download-person-photo'){ const p=personById(id); if(p&&p.photo){ const a=document.createElement('a');a.href=p.photo;a.download=(p.name||'resident')+'-photo.jpg';document.body.appendChild(a);a.click();a.remove(); } return; }
+  if(action==='sync-all'){ saveCloud().then(function(ok){toast(ok?'All data synced to Supabase':'Cloud sync failed. Check your login.');}); return; }
+  if(action==='add-fine-for-booking'){ const b=state.bookings.find(function(x){return x.id===id;}); const p=b&&state.people.find(function(x){return x.bookingId===id;}); if(p){ openFineModal(null,p.id); } else { toast('Resident information not found'); } return; }
+  if(action==='confirm-rent'){ confirmRentPayment({bookingId:id,amount:Number(el.dataset.amount||0),dueDate:el.dataset.due||todayISO(0)}); return; }
+  if(action==='edit-dept'){ openDepartmentModal(id); return; }
+  if(action==='add-dept-cost'){ openDepartmentCostModal(id,null); return; }
+  if(action==='edit-dept-cost'){ openDepartmentCostModal(el.dataset.deptId,id); return; }
+  if(action==='add-dept'){
+    openModal('Add department', [
+        { key:'name', label:'Department name (e.g. Main building, Garden wing)', default:'' },
+        { key:'serviceCost', label:'Monthly service cost', type:'number', step:'0.01', default:'' }
+      ], function(vals){
+      if(!vals.name.trim()){ toast('Enter a department name'); return false; }
+      state.structure.departments.push({ id: uid('dept'), name: vals.name.trim(), serviceCost: Math.max(0, Number(vals.serviceCost)||0) });
+      persistStructure(); renderApp(); toast('Department added');
+    });
+  } else if(action==='rename-dept'){
+    const d = deptById(id); if(!d) return;
+    openModal('Edit department', [
+        { key:'name', label:'Department name', default:d.name },
+        { key:'serviceCost', label:'Monthly service cost', type:'number', step:'0.01', default:d.serviceCost||'' }
+      ], function(vals){
+      if(!vals.name.trim()) return false;
+      d.name = vals.name.trim();
+      d.serviceCost = Math.max(0, Number(vals.serviceCost)||0);
+      persistStructure(); renderApp();
+    });
+  } else if(action==='add-room'){
+    const d = deptById(id);
+    openModal('Add room'+(d?' to '+d.name:''), [
+      { key:'number', label:'Room number', default:'' },
+      { key:'type', label:'Room type (optional)', default:'' },
+      { key:'price', label:'Rate per night (optional)', type:'number', step:'0.01', default:'' }
+    ], function(vals){
+      if(!vals.number.trim()){ toast('Enter a room number'); return false; }
+      state.structure.rooms.push({ id: uid('room'), departmentId: id, number: vals.number.trim(), type: vals.type.trim(), price: vals.price?Number(vals.price):0 });
+      persistStructure(); renderApp(); toast('Room added');
+    });
+  } else if(action==='edit-room'){
+    const r = roomById(id); if(!r) return;
+    openModal('Edit room', [
+      { key:'number', label:'Room number', default:r.number },
+      { key:'type', label:'Room type (optional)', default:r.type||'' },
+      { key:'price', label:'Rate per night (optional)', type:'number', step:'0.01', default:r.price||'' }
+    ], function(vals){
+      if(!vals.number.trim()) return false;
+      r.number = vals.number.trim(); r.type = vals.type.trim(); r.price = vals.price?Number(vals.price):0;
+      persistStructure(); renderApp();
+    });
+  } else if(action==='add-bed'){
+    const r = roomById(id);
+    const count = state.structure.beds.filter(function(b){ return b.roomId===id; }).length;
+    openModal('Add bed'+(r?' to room '+r.number:''), [
+        { key:'label', label:'Bed label', default:'Bed '+(count+1) },
+        { key:'monthlyRent', label:'Monthly rent', type:'number', step:'0.01', default:'' }
+      ], function(vals){
+      state.structure.beds.push({ id: uid('bed'), roomId: id, label: vals.label.trim()||('Bed '+(count+1)), monthlyRent: Math.max(0, Number(vals.monthlyRent)||0) });
+      persistStructure(); renderApp(); toast('Bed added');
+    });
+  } else if(action==='rename-bed'){
+    const b = bedById(id); if(!b) return;
+    openModal('Edit bed', [
+        { key:'label', label:'Bed label', default:b.label },
+        { key:'monthlyRent', label:'Monthly rent', type:'number', step:'0.01', default:b.monthlyRent||'' }
+      ], function(vals){
+      if(!vals.label.trim()) return false;
+      b.label = vals.label.trim();
+      b.monthlyRent = Math.max(0, Number(vals.monthlyRent)||0);
+      persistStructure(); renderApp();
+    });
+  } else if(action==='toggle-bed'){
+    const h = document.getElementById('hist-'+id);
+    if(h) h.hidden = !h.hidden;
+  } else if(action==='quick-book'){
+    openBookingModal(id, null);
+  } else if(action==='new-booking'){
+    openBookingModal(null, null);
+  } else if(action==='edit-booking'){
+    openBookingModal(null, id);
+  }
+}
+function onContentInput(e){ if(e.target.id==='booking-search'){ bookingFilter.q = e.target.value; renderBookingTable(); } }
+function onContentChange(e){
+  if(e.target.id==='booking-status'){ bookingFilter.status = e.target.value; renderBookingTable(); }
+  if(e.target.id==='report-from' || e.target.id==='report-to'){ renderReportPreview(); }
+}
+$('#content').addEventListener('click', onContentClick);
+$('#content').addEventListener('input', onContentInput);
+$('#content').addEventListener('change', onContentChange);
+
+document.addEventListener('change', function(e){
+  if(e.target.id!=='backup-file' || !e.target.files || !e.target.files[0]) return;
+  const file=e.target.files[0];
+  const reader=new FileReader();
+  reader.onload=function(){
+    try{
+      const data=JSON.parse(reader.result);
+      if(!data || !data.structure || !Array.isArray(data.bookings)) throw new Error('Invalid backup');
+      state.settings=data.settings || {hotelName:'Om Amr',currency:'$'};
+      state.structure=data.structure;
+      state.bookings=data.bookings;
+      state.people=Array.isArray(data.people)?data.people:state.people;
+      state.departmentCosts=Array.isArray(data.departmentCosts)?data.departmentCosts:state.departmentCosts;
+      state.rentPayments=Array.isArray(data.rentPayments)?data.rentPayments:state.rentPayments;
+      persistSettings(); persistStructure(); persistBookings();
+      $('#hotel-name-label').textContent=state.settings.hotelName || 'Om Amr';
+      document.title=(state.settings.hotelName || 'Om Amr')+' — Accounts';
+      renderApp();
+      toast('Backup imported');
+    }catch(err){
+      console.error(err);
+      toast('Invalid backup file');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value='';
+});
+
+$('#pw-input').focus();
+</script>
+</body>
+</html>
