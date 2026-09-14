@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Om Amr — Hotel Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#16302B;--ink-soft:#24463D;--paper:#F1EDE2;--card:#FFFFFF;
+  --brass:#A9812F;--brass-dark:#8C6B26;--burgundy:#7A2A2E;--sage:#4B6B57;
+  --text:#20241F;--text-soft:#666F63;--line:#DED7C4;--radius:10px;
+  --serif:'Fraunces',Georgia,serif;--sans:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono','Courier New',monospace;
+}
+*{box-sizing:border-box;}
+[hidden]{display:none !important;}
+html,body{margin:0;padding:0;min-height:100%;}
+body{font-family:var(--sans);background:var(--paper);color:var(--text);-webkit-font-smoothing:antialiased;}
+button{font-family:inherit;cursor:pointer;}
+input,select,textarea{font-family:inherit;}
+h1,h2,h3{font-family:var(--serif);}
+
+/* Login */
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,var(--ink) 0%,var(--ink-soft) 100%);padding:24px;}
+.login-card{background:var(--card);border-radius:14px;padding:40px 36px;max-width:360px;width:100%;box-shadow:0 30px 60px rgba(0,0,0,0.35);}
+.login-logo{font-size:30px;color:var(--ink);margin:0 0 4px;font-weight:600;}
+.login-sub{color:var(--text-soft);margin:0 0 26px;font-size:14px;}
+.login-card label{display:block;font-size:12.5px;color:var(--text-soft);margin:0 0 5px;}
+.login-card input{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:8px;font-size:15px;margin-bottom:14px;}
+.login-card button{width:100%;padding:12px 14px;border:none;border-radius:8px;background:var(--brass);color:#fff;font-size:15px;font-weight:600;}
+.login-card button:hover{background:var(--brass-dark);}
+.login-card button:disabled{opacity:.6;cursor:default;}
+.login-error{color:var(--burgundy);font-size:13px;margin:-6px 0 14px;min-height:16px;}
+.login-note{color:var(--text-soft);font-size:12px;margin:18px 0 0;line-height:1.5;}
+
+/* App shell */
+#app{display:flex;min-height:100vh;}
+.sidebar{width:225px;flex-shrink:0;background:var(--ink);color:#EFE9D8;display:flex;flex-direction:column;padding:28px 20px;}
+.sidebar-logo{font-size:22px;margin:0;color:#fff;font-weight:600;}
+.sidebar-sub{font-size:12px;color:#B9C4BC;margin:2px 0 30px;}
+.nav{display:flex;flex-direction:column;gap:4px;flex:1;}
+.nav button{text-align:left;background:none;border:none;color:#D8DFD8;padding:10px 12px;border-radius:8px;font-size:14px;}
+.nav button:hover{background:rgba(255,255,255,0.08);}
+.nav button.active{background:var(--brass);color:#fff;font-weight:600;}
+.sidebar-foot{border-top:1px solid rgba(255,255,255,0.14);padding-top:14px;}
+.sidebar-foot button{width:100%;text-align:left;background:none;border:none;color:#B9C4BC;padding:8px 12px;font-size:13px;border-radius:8px;}
+.sidebar-foot button:hover{background:rgba(255,255,255,0.08);color:#fff;}
+.sidebar-email{font-size:11px;color:#8FA097;padding:0 12px 8px;word-break:break-all;}
+
+.main{flex:1;padding:32px 40px;max-width:1000px;}
+.page-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:6px;}
+.page-header h2{font-size:25px;margin:0;color:var(--ink);font-weight:600;}
+.page-date{color:var(--text-soft);font-size:13px;}
+
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px;}
+.stat-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:0 1px 2px rgba(20,30,20,0.04);}
+.stat-label{display:block;font-size:12px;color:var(--text-soft);margin-bottom:8px;}
+.stat-value{font-size:21px;font-weight:600;color:var(--ink);}
+.mono{font-family:var(--mono);}
+.text-burgundy{color:var(--burgundy) !important;}
+.text-sage{color:var(--sage) !important;}
+
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;margin-bottom:20px;box-shadow:0 1px 2px rgba(20,30,20,0.04);}
+.panel h3{font-size:16px;margin:0 0 14px;color:var(--ink);font-weight:600;}
+.panel > p:last-child{margin-bottom:0;}
+
+.table-scroll{overflow-x:auto;}
+.data-table{width:100%;border-collapse:collapse;font-size:13.5px;}
+.data-table th{text-align:left;padding:8px 10px;border-bottom:2px solid var(--line);color:var(--text-soft);font-weight:600;font-size:12px;white-space:nowrap;}
+.data-table td{padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap;}
+.row-actions button{background:none;border:1px solid var(--line);border-radius:6px;padding:4px 8px;margin-right:4px;font-size:12px;}
+.row-actions .btn-danger{border-color:var(--burgundy);color:var(--burgundy);}
+
+.tag{padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:600;white-space:nowrap;}
+.tag-active{background:#E3EEE7;color:var(--sage);}
+.tag-upcoming{background:#F1E7CE;color:var(--brass-dark);}
+.tag-done{background:#ECEAE3;color:var(--text-soft);}
+
+/* Departments tree */
+.toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.toolbar input,.toolbar select{padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-size:13.5px;}
+.toolbar input{flex:1;min-width:160px;}
+.tree-node{margin-bottom:12px;}
+.tree-row{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px;flex-wrap:wrap;box-shadow:0 1px 2px rgba(20,30,20,0.03);}
+.tree-name{font-weight:600;color:var(--ink);flex-shrink:0;}
+.tree-meta{font-size:12px;color:var(--text-soft);flex:1;min-width:80px;}
+.tree-actions{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;}
+.tree-actions button{background:none;border:1px solid var(--line);border-radius:6px;padding:5px 9px;font-size:12px;}
+.tree-actions .btn-danger{border-color:var(--burgundy);color:var(--burgundy);}
+.tree-actions .btn-primary-outline{border-color:var(--brass);color:var(--brass-dark);font-weight:600;}
+.tree-children{margin-left:20px;padding-left:14px;border-left:2px solid var(--line);margin-top:8px;}
+.room-row{background:#FBFAF6;}
+.bed-row{background:#F7F5EF;}
+.tree-empty{font-size:12.5px;color:var(--text-soft);margin:6px 0 6px 4px;}
+.cost-block{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);}
+.summary-line{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--text-soft);margin-top:8px;}
+.summary-line b{color:var(--ink);font-family:var(--mono);}
+
+.person-photo{width:44px;height:44px;object-fit:cover;border-radius:8px;display:block;border:1px solid var(--line);}
+.photo-placeholder{width:44px;height:44px;border-radius:8px;background:var(--paper);border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text-soft);text-align:center;}
+.person-photo-large{width:110px;height:110px;object-fit:cover;border-radius:10px;display:block;border:1px solid var(--line);margin-bottom:8px;}
+
+/* Announcements */
+.announce-card{display:flex;justify-content:space-between;align-items:center;gap:16px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--burgundy);border-radius:8px;padding:14px 16px;margin-bottom:12px;flex-wrap:wrap;}
+.announce-title{font-weight:600;color:var(--ink);margin:0 0 3px;}
+.announce-meta{font-size:12.5px;color:var(--text-soft);}
+.announce-amount{font-family:var(--mono);font-weight:600;color:var(--burgundy);font-size:16px;}
+
+.btn-primary{background:var(--brass);border:none;color:#fff;padding:9px 16px;border-radius:8px;font-size:13.5px;font-weight:600;}
+.btn-primary:hover{background:var(--brass-dark);}
+
+.empty{text-align:center;padding:28px 10px;color:var(--text-soft);}
+.empty-title{font-weight:600;color:var(--ink);margin:0 0 4px;}
+.empty-body{margin:0;font-size:13px;}
+
+.settings-form{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;}
+.settings-form .field{display:flex;flex-direction:column;gap:6px;}
+.settings-form label{font-size:12.5px;color:var(--text-soft);}
+.settings-form input{padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-size:13.5px;}
+.sync-line{font-size:12px;color:var(--text-soft);margin-top:10px;}
+.instructions ol{margin:0;padding-left:20px;font-size:13.5px;line-height:1.9;color:var(--text);}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(20,30,26,0.5);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;}
+.modal{background:#fff;border-radius:12px;padding:26px 26px 20px;width:100%;max-width:440px;max-height:88vh;overflow-y:auto;display:flex;flex-direction:column;}
+.modal h3{margin:0 0 18px;color:var(--ink);font-size:19px;}
+.field{margin-bottom:14px;display:flex;flex-direction:column;gap:6px;}
+.field label{font-size:12.5px;color:var(--text-soft);}
+.field input,.field select{padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:14px;}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:6px;}
+.modal-actions button{padding:9px 16px;border-radius:8px;font-size:13.5px;border:1px solid var(--line);background:#fff;}
+.modal-actions .btn-primary{border:none;}
+
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:8px;font-size:13.5px;opacity:0;transition:all .25s ease;pointer-events:none;z-index:200;max-width:80vw;text-align:center;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.print-title{display:none;}
+@media print{
+  .no-print,.sidebar{display:none !important;}
+  .main{padding:0;max-width:100%;}
+  .print-title{display:block !important;}
+  body{background:#fff;}
+}
+
+@media(max-width:760px){
+  #app{flex-direction:column;}
+  .sidebar{width:100%;flex-direction:row;align-items:center;padding:14px 16px;gap:12px;overflow-x:auto;}
+  .sidebar-logo{font-size:17px;}
+  .sidebar-sub,.sidebar-email{display:none;}
+  .nav{flex-direction:row;flex:none;}
+  .sidebar-foot{border-top:none;border-left:1px solid rgba(255,255,255,0.16);padding-top:0;padding-left:10px;margin-left:auto;width:auto;}
+  .sidebar-foot button{width:auto;white-space:nowrap;}
+  .main{padding:20px 16px;}
+  .stat-grid{grid-template-columns:repeat(2,1fr);}
+  .tree-children{margin-left:8px;padding-left:10px;}
+  .settings-form{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-card">
+    <p class="login-logo">Om Amr</p>
+    <p class="login-sub">Hotel management &amp; accounting</p>
+    <label for="login-email">Email</label>
+    <input type="email" id="login-email" autocomplete="username">
+    <label for="login-password">Password</label>
+    <input type="password" id="login-password" autocomplete="current-password">
+    <p class="login-error" id="login-error"></p>
+    <button id="login-submit">Sign in</button>
+    <p class="login-note">Signed in accounts are created by the hotel owner in Supabase. Everyone who signs in shares the same live data.</p>
+  </div>
+</div>
+
+<div id="app" hidden>
+  <div class="sidebar">
+    <p class="sidebar-logo" id="hotel-name-label">Om Amr</p>
+    <p class="sidebar-sub">Hotel management</p>
+    <div class="nav">
+      <button data-page="dashboard">Dashboard</button>
+      <button data-page="departments">Departments</button>
+      <button data-page="residents">Residents</button>
+      <button data-page="announcements">Announcements</button>
+      <button data-page="reports">Reports</button>
+    </div>
+    <p class="sidebar-email" id="session-email"></p>
+    <div class="sidebar-foot">
+      <button id="btn-signout">Sign out</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="page-header">
+      <h2 id="page-title">Dashboard</h2>
+      <span class="page-date" id="page-date"></span>
+    </div>
+    <div id="content"><p class="empty-body">Loading…</p></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay" hidden>
+  <div class="modal">
+    <h3 id="modal-title"></h3>
+    <div id="modal-fields"></div>
+    <div class="modal-actions">
+      <button id="modal-cancel">Cancel</button>
+      <button id="modal-save" class="btn-primary">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ===================== Configuration ===================== */
+const SUPABASE_URL = 'https://oazfiquhttwlzeaovtob.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_SKi07EQFEVfdIbbhyq9HqA_da3SYf03';
+const CLOUD_TABLE = 'app_data';
+const CLOUD_ROW_ID = 'main';
+
+let accessToken = null;
+let refreshToken = null;
+let sessionEmail = '';
+
+let state = {
+  settings: { hotelName: 'Om Amr', currency: '$' },
+  departments: [],       // {id, name}
+  rooms: [],             // {id, departmentId, number, type}
+  beds: [],              // {id, roomId, label, monthlyRent}
+  bookings: [],          // {id, bedId, guest, phone, faculty, monthlyRent, securityDeposit, photo, checkIn, checkOut, createdAt}
+  departmentCosts: [],   // {id, departmentId, name, amount, date, notes, createdAt}
+  rentPayments: []       // {id, bookingId, departmentId, amount, paymentDate, month, createdAt}
+};
+
+let currentPage = 'dashboard';
+let residentFilter = { q: '', status: 'all' };
+let modalOnSave = null;
+let lastSyncedAt = null;
+let lastSyncError = null;
+
+/* ===================== Helpers ===================== */
+function $(sel, root){ return (root||document).querySelector(sel); }
+function $$(sel, root){ return Array.from((root||document).querySelectorAll(sel)); }
+function uid(prefix){ return prefix+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function todayISO(offset){ const d=new Date(); d.setDate(d.getDate()+(offset||0)); return d.toISOString().slice(0,10); }
+function fmtMoney(n){ const sym=state.settings.currency||'$'; const val=Number(n||0); return sym+val.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtDate(d){ if(!d) return '—'; const dt=new Date(d+'T00:00:00'); if(isNaN(dt)) return '—'; return dt.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}); }
+function monthKey(d){ return (d||'').slice(0,7); }
+function monthLabel(key){ const parts=(key||'').split('-'); if(parts.length<2) return key; const d=new Date(Number(parts[0]), Number(parts[1])-1, 1); return d.toLocaleDateString(undefined,{month:'long',year:'numeric'}); }
+function daysInMonth(year, monthIndex0){ return new Date(year, monthIndex0+1, 0).getDate(); }
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(function(){ t.classList.remove('show'); },2400); }
+
+function status(b){
+  const today=new Date(); today.setHours(0,0,0,0);
+  const ci=new Date(b.checkIn+'T00:00:00'), co=new Date(b.checkOut+'T00:00:00');
+  if(today<ci) return 'Upcoming';
+  if(today>=ci && today<co) return 'In-house';
+  return 'Checked out';
+}
+function bedById(id){ return state.beds.find(function(b){ return b.id===id; }); }
+function roomById(id){ return state.rooms.find(function(r){ return r.id===id; }); }
+function deptById(id){ return state.departments.find(function(d){ return d.id===id; }); }
+function roomOfBed(bedId){ const bd=bedById(bedId); return bd?roomById(bd.roomId):null; }
+function deptOfBed(bedId){ const r=roomOfBed(bedId); return r?deptById(r.departmentId):null; }
+function bookingById(id){ return state.bookings.find(function(b){ return b.id===id; }); }
+
+function bedIsBooked(bedId, checkIn, checkOut, excludeBookingId){
+  return state.bookings.some(function(b){
+    if(b.bedId!==bedId) return false;
+    if(excludeBookingId && b.id===excludeBookingId) return false;
+    return checkIn < b.checkOut && b.checkIn < checkOut;
+  });
+}
+function activeBookingForBed(bedId, asOfDate){
+  const asOf = asOfDate || todayISO(0);
+  return state.bookings.find(function(b){ return b.bedId===bedId && b.checkIn<=asOf && asOf<b.checkOut; });
+}
+
+/* ---------- photo compression ---------- */
+function compressPhoto(file, cb){
+  const reader = new FileReader();
+  reader.onload = function(){
+    const img = new Image();
+    img.onload = function(){
+      const max=480, scale=Math.min(1, max/Math.max(img.width,img.height));
+      const canvas=document.createElement('canvas');
+      canvas.width=Math.max(1,Math.round(img.width*scale));
+      canvas.height=Math.max(1,Math.round(img.height*scale));
+      const ctx=canvas.getContext('2d'); ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      cb(canvas.toDataURL('image/jpeg',0.78));
+    };
+    img.onerror = function(){ cb(''); };
+    img.src = reader.result;
+  };
+  reader.onerror = function(){ cb(''); };
+  reader.readAsDataURL(file);
+}
+
+/* ---------- rent logic ---------- */
+function monthlyDueDate(checkIn, key){
+  const parts=key.split('-'); const y=Number(parts[0]), m=Number(parts[1])-1;
+  const anchorDay=Number(checkIn.split('-')[2]);
+  const day=Math.min(anchorDay, daysInMonth(y,m));
+  return key+'-'+String(day).padStart(2,'0');
+}
+function rentPaymentForMonth(bookingId, key){
+  return state.rentPayments.filter(function(p){ return p.bookingId===bookingId && p.month===key; }).reduce(function(s,p){ return s+Number(p.amount||0); },0);
+}
+function bookingTotalPaid(bookingId){
+  return state.rentPayments.filter(function(p){ return p.bookingId===bookingId; }).reduce(function(s,p){ return s+Number(p.amount||0); },0);
+}
+function rentDueThroughDate(b, asOf){
+  let total=0; let key=monthKey(b.checkIn);
+  const endKey=monthKey(asOf<b.checkOut?asOf:todayISO(-1===0?0:0));
+  const stopKey = (asOf < b.checkOut ? asOf : b.checkOut).slice(0,7);
+  let guard=0;
+  while(key<=stopKey && guard<600){
+    const due=monthlyDueDate(b.checkIn, key);
+    if(due<=asOf && due<b.checkOut){ total += Number(b.monthlyRent||0); }
+    const parts=key.split('-'); let y=Number(parts[0]), m=Number(parts[1])-1; m++; if(m>11){m=0;y++;}
+    key = y+'-'+String(m+1).padStart(2,'0');
+    guard++;
+  }
+  return total;
+}
+function currentUnpaidRent(b, asOf){
+  const due = rentDueThroughDate(b, asOf||todayISO(0));
+  const paid = bookingTotalPaid(b.id);
+  return Math.max(0, due-paid);
+}
+function rentAnnouncements(){
+  const today = todayISO(0);
+  const list = [];
+  state.bookings.forEach(function(b){
+    if(status(b)!=='In-house') return;
+    let key = monthKey(b.checkIn); const guard0=key;
+    let months=[]; let k=monthKey(b.checkIn); let g=0;
+    while(k<=monthKey(today) && g<600){ months.push(k); const p=k.split('-'); let y=Number(p[0]),m=Number(p[1])-1; m++; if(m>11){m=0;y++;} k=y+'-'+String(m+1).padStart(2,'0'); g++; }
+    months.forEach(function(mKey){
+      const due = monthlyDueDate(b.checkIn, mKey);
+      if(due>today) return;
+      if(due>=b.checkOut) return;
+      const paidForMonth = rentPaymentForMonth(b.id, mKey);
+      const owedForMonth = Number(b.monthlyRent||0) - paidForMonth;
+      if(owedForMonth>0.004){
+        list.push({ bookingId:b.id, guest:b.guest, bedId:b.bedId, month:mKey, dueDate:due, amount:owedForMonth });
+      }
+    });
+  });
+  list.sort(function(a,b2){ return a.dueDate.localeCompare(b2.dueDate); });
+  return list;
+}
+function confirmRentPayment(bookingId, month, amount, dueDate){
+  const b = bookingById(bookingId); if(!b) return;
+  const dept = deptOfBed(b.bedId);
+  state.rentPayments.push({ id:uid('rp'), bookingId:bookingId, departmentId:dept?dept.id:'', amount:Number(amount), paymentDate:todayISO(0), month:month, createdAt:new Date().toISOString() });
+  persistRentPayments(); saveCloud();
+  toast('Payment recorded — '+fmtMoney(amount)+' added to '+(dept?dept.name:'department')+' balance');
+  renderApp();
+}
+
+/* ---------- department cost / income ---------- */
+function departmentCostTotal(deptId, fromKey, toKey){
+  return state.departmentCosts.filter(function(c){
+    if(c.departmentId!==deptId) return false;
+    if(fromKey && monthKey(c.date)<fromKey) return false;
+    if(toKey && monthKey(c.date)>toKey) return false;
+    return true;
+  }).reduce(function(s,c){ return s+Number(c.amount||0); },0);
+}
+function departmentRentCollected(deptId, fromKey, toKey){
+  return state.rentPayments.filter(function(p){
+    if(p.departmentId!==deptId) return false;
+    if(fromKey && monthKey(p.paymentDate)<fromKey) return false;
+    if(toKey && monthKey(p.paymentDate)>toKey) return false;
+    return true;
+  }).reduce(function(s,p){ return s+Number(p.amount||0); },0);
+}
+
+/* ===================== Local + cloud storage ===================== */
+function getLocal(key, fallback){ try{ const raw=localStorage.getItem(key); return raw?JSON.parse(raw):fallback; }catch(e){ return fallback; } }
+function setLocal(key, value){ try{ localStorage.setItem(key, JSON.stringify(value)); }catch(e){} }
+
+async function supabaseFetch(path, opts){
+  opts = opts||{};
+  const headers = Object.assign({
+    'apikey': SUPABASE_PUBLISHABLE_KEY,
+    'Content-Type':'application/json'
+  }, opts.headers||{});
+  if(accessToken) headers['Authorization'] = 'Bearer '+accessToken;
+  const res = await fetch(SUPABASE_URL+path, Object.assign({}, opts, { headers: headers }));
+  if(!res.ok){
+    let msg='Request failed ('+res.status+')';
+    try{ const j=await res.json(); if(j&&j.error_description) msg=j.error_description; else if(j&&j.message) msg=j.message; }catch(e){}
+    throw new Error(msg);
+  }
+  if(res.status===204) return null;
+  return res.json();
+}
+async function signIn(email, password){
+  const data = await supabaseFetch('/auth/v1/token?grant_type=password', {
+    method:'POST',
+    body: JSON.stringify({ email:email, password:password })
+  });
+  accessToken = data.access_token; refreshToken = data.refresh_token; sessionEmail = email;
+  setLocal('om-amr-session', { accessToken:accessToken, refreshToken:refreshToken, email:email });
+  return true;
+}
+async function restoreSession(){
+  const s = getLocal('om-amr-session', null);
+  if(!s || !s.accessToken) return false;
+  accessToken = s.accessToken; refreshToken = s.refreshToken; sessionEmail = s.email||'';
+  try{
+    await supabaseFetch('/auth/v1/user', { method:'GET' });
+    return true;
+  }catch(e){
+    if(refreshToken){
+      try{
+        const data = await supabaseFetch('/auth/v1/token?grant_type=refresh_token', { method:'POST', body: JSON.stringify({ refresh_token: refreshToken }) });
+        accessToken = data.access_token; refreshToken = data.refresh_token;
+        setLocal('om-amr-session', { accessToken:accessToken, refreshToken:refreshToken, email:sessionEmail });
+        return true;
+      }catch(e2){ return false; }
+    }
+    return false;
+  }
+}
+function signOutLocal(){
+  accessToken=null; refreshToken=null; sessionEmail='';
+  try{ localStorage.removeItem('om-amr-session'); }catch(e){}
+}
+
+async function loadCloud(){
+  if(!accessToken) return false;
+  const data = await supabaseFetch('/rest/v1/'+CLOUD_TABLE+'?id=eq.'+encodeURIComponent(CLOUD_ROW_ID)+'&select=data&limit=1', { method:'GET' });
+  if(Array.isArray(data) && data.length && data[0].data){
+    state = Object.assign({ settings:{hotelName:'Om Amr',currency:'$'}, departments:[], rooms:[], beds:[], bookings:[], departmentCosts:[], rentPayments:[] }, data[0].data);
+    lastSyncedAt = new Date();
+    return true;
+  }
+  return false;
+}
+async function saveCloud(){
+  if(!accessToken) return false;
+  try{
+    await supabaseFetch('/rest/v1/'+CLOUD_TABLE, {
+      method:'POST',
+      headers:{ 'Prefer':'resolution=merge-duplicates' },
+      body: JSON.stringify({ id: CLOUD_ROW_ID, data: state, updated_at: new Date().toISOString() })
+    });
+    return true;
+  }catch(e){
+    console.error('save to cloud failed', e);
+    toast('Could not save to Supabase: '+e.message);
+    return false;
+  }
+}
+function persistSettings(){ saveCloud(); }
+function persistStructure(){ saveCloud(); }
+function persistBookings(){ saveCloud(); }
+function persistDepartmentCosts(){ saveCloud(); }
+function persistRentPayments(){ saveCloud(); }
+
+/* ===================== Login flow ===================== */
+async function tryLogin(){
+  const email=$('#login-email').value.trim(), password=$('#login-password').value;
+  const btn=$('#login-submit');
+  if(!email || !password){ $('#login-error').textContent='Enter your email and password.'; return; }
+  btn.disabled=true; btn.textContent='Signing in…'; $('#login-error').textContent='';
+  try{
+    await signIn(email, password);
+    await enterApp();
+  }catch(e){
+    $('#login-error').textContent = e.message || 'Could not sign in.';
+  }finally{
+    btn.disabled=false; btn.textContent='Sign in';
+  }
+}
+async function enterApp(){
+  $('#login-screen').hidden=true;
+  $('#app').hidden=false;
+  $('#session-email').textContent=sessionEmail;
+  $('#content').innerHTML='<p class="empty-body">Loading your hotel data…</p>';
+  try{ await loadCloud(); }catch(e){ console.error(e); toast('Could not load cloud data: '+e.message); }
+  $('#hotel-name-label').textContent = state.settings.hotelName||'Om Amr';
+  document.title = (state.settings.hotelName||'Om Amr')+' — Hotel Management';
+  renderApp();
+}
+$('#login-submit').addEventListener('click', tryLogin);
+$('#login-password').addEventListener('keydown', function(e){ if(e.key==='Enter') tryLogin(); });
+$('#login-email').addEventListener('keydown', function(e){ if(e.key==='Enter') $('#login-password').focus(); });
+$('#btn-signout').addEventListener('click', function(){
+  signOutLocal();
+  $('#app').hidden=true;
+  $('#login-screen').hidden=false;
+  $('#login-password').value='';
+  $('#login-password').focus();
+});
+
+/* ===================== Nav / render dispatch ===================== */
+$$('.nav button').forEach(function(b){
+  b.addEventListener('click', function(){ currentPage=b.dataset.page; renderApp(); });
+});
+function updateDate(){ $('#page-date').textContent = new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'}); }
+const PAGE_TITLES = { dashboard:'Dashboard', departments:'Departments', residents:'Residents', announcements:'Announcements', reports:'Reports' };
+function renderApp(){
+  $$('.nav button').forEach(function(b){ b.classList.toggle('active', b.dataset.page===currentPage); });
+  $('#page-title').textContent = PAGE_TITLES[currentPage]||'Dashboard';
+  updateDate();
+  const c=$('#content');
+  if(currentPage==='dashboard') renderDashboard(c);
+  else if(currentPage==='departments') renderDepartments(c);
+  else if(currentPage==='residents') renderResidents(c);
+  else if(currentPage==='announcements') renderAnnouncements(c);
+  else renderReports(c);
+}
+
+/* ===================== Page 1: Dashboard ===================== */
+function renderDashboard(container){
+  const totalIncome = state.rentPayments.reduce(function(s,p){ return s+Number(p.amount||0); },0);
+  const totalCost = state.departmentCosts.reduce(function(s,c){ return s+Number(c.amount||0); },0);
+  const netIncome = totalIncome-totalCost;
+  const inHouseBookings = state.bookings.filter(function(b){ return status(b)==='In-house'; });
+  const comingIncome = inHouseBookings.reduce(function(s,b){ return s+Number(b.monthlyRent||0); },0);
+
+  const totalBeds = state.beds.length;
+  const upcoming = state.bookings.filter(function(b){ return status(b)==='Upcoming'; }).length;
+  const checkedOut = state.bookings.filter(function(b){ return status(b)==='Checked out'; }).length;
+  const occupancy = totalBeds ? Math.round(inHouseBookings.length/totalBeds*100) : 0;
+
+  const unpaidRows = state.bookings.map(function(b){ return { b:b, unpaid: currentUnpaidRent(b, todayISO(0)) }; })
+    .filter(function(r){ return r.unpaid>0.004; })
+    .sort(function(a,b2){ return b2.unpaid-a.unpaid; });
+
+  let unpaidHtml;
+  if(!unpaidRows.length){
+    unpaidHtml = emptyState('No unpaid rent', 'Every resident is up to date.');
+  }else{
+    const shown = unpaidRows.slice(0,10);
+    unpaidHtml = '<div class="table-scroll"><table class="data-table"><thead><tr><th>Resident</th><th>Department</th><th>Room / bed</th><th>Unpaid</th><th>Status</th></tr></thead><tbody>'+
+      shown.map(function(r){
+        const room=roomOfBed(r.b.bedId), bed=bedById(r.b.bedId), dept=deptOfBed(r.b.bedId), st=status(r.b);
+        const stClass= st==='In-house'?'tag-active':st==='Upcoming'?'tag-upcoming':'tag-done';
+        return '<tr><td>'+esc(r.b.guest)+'</td><td>'+(dept?esc(dept.name):'—')+'</td><td>'+(room?esc(room.number):'—')+(bed?' · '+esc(bed.label):'')+'</td><td class="mono text-burgundy">'+fmtMoney(r.unpaid)+'</td><td><span class="tag '+stClass+'">'+st+'</span></td></tr>';
+      }).join('') + '</tbody></table></div>' +
+      (unpaidRows.length>10 ? '<p class="empty-body" style="margin-top:10px;">Showing the top 10 of '+unpaidRows.length+'. See Reports for the full list.</p>' : '');
+  }
+
+  container.innerHTML =
+    '<div class="stat-grid">'+
+      '<div class="stat-card"><span class="stat-label">Total income (all time)</span><span class="stat-value mono">'+fmtMoney(totalIncome)+'</span></div>'+
+      '<div class="stat-card"><span class="stat-label">Coming income (monthly, current residents)</span><span class="stat-value mono">'+fmtMoney(comingIncome)+'</span></div>'+
+      '<div class="stat-card"><span class="stat-label">Total cost (all time)</span><span class="stat-value mono">'+fmtMoney(totalCost)+'</span></div>'+
+      '<div class="stat-card"><span class="stat-label">Net income</span><span class="stat-value mono'+(netIncome<0?' text-burgundy':'')+'">'+fmtMoney(netIncome)+'</span></div>'+
+    '</div>'+
+    '<div class="panel"><h3>Residents summary</h3><div class="summary-line">'+
+      '<span>In house: <b>'+inHouseBookings.length+'</b></span>'+
+      '<span>Upcoming: <b>'+upcoming+'</b></span>'+
+      '<span>Checked out: <b>'+checkedOut+'</b></span>'+
+      '<span>Beds occupied: <b>'+inHouseBookings.length+' / '+totalBeds+'</b></span>'+
+      '<span>Occupancy: <b>'+occupancy+'%</b></span>'+
+    '</div></div>'+
+    '<div class="panel"><h3>Unpaid rent</h3>'+unpaidHtml+'</div>'+
+    '<div class="panel"><h3>Site settings</h3>'+
+      '<div class="settings-form">'+
+        '<div class="field"><label for="set-hotel-name">Hotel name</label><input id="set-hotel-name" value="'+esc(state.settings.hotelName)+'"></div>'+
+        '<div class="field"><label for="set-currency">Currency symbol</label><input id="set-currency" value="'+esc(state.settings.currency)+'"></div>'+
+        '<button class="btn-primary" data-action="save-settings">Save</button>'+
+      '</div>'+
+      '<p class="sync-line">Signed in as '+esc(sessionEmail)+' · '+(lastSyncedAt?('last synced '+lastSyncedAt.toLocaleTimeString()):'not yet synced')+'</p>'+
+    '</div>'+
+    '<div class="panel instructions"><h3>Instructions</h3><ol>'+
+      '<li>In <b>Departments</b>, add a department, then add rooms and beds inside it.</li>'+
+      '<li>Click a vacant bed to book a resident: name, phone, faculty, monthly rent, security deposit, photo, check-in and check-out dates.</li>'+
+      '<li>Each month, on the same day of the month as check-in, an unpaid announcement appears on <b>Announcements</b>. Press Paid once you receive the rent — it is added to the department balance.</li>'+
+      '<li>See everyone staying with you on <b>Residents</b>.</li>'+
+      '<li>Use <b>Reports</b> for income and cost totals over any date range, and to print a copy.</li>'+
+    '</ol></div>';
+}
+function emptyState(title, body){ return '<div class="empty"><p class="empty-title">'+esc(title)+'</p><p class="empty-body">'+esc(body||'')+'</p></div>'; }
+
+/* ===================== Page 2: Departments ===================== */
+function renderDepartments(container){
+  let html = '<div class="toolbar"><button class="btn-primary" data-action="add-dept">Add department</button></div>';
+  if(!state.departments.length){
+    html += emptyState('No departments yet','Create a department such as a building, floor or wing, then add rooms and beds inside it.');
+  }
+  state.departments.forEach(function(d){
+    const rooms = state.rooms.filter(function(r){ return r.departmentId===d.id; });
+    const collected = departmentRentCollected(d.id);
+    const costs = state.departmentCosts.filter(function(c){ return c.departmentId===d.id; });
+    const costTotal = costs.reduce(function(s,c){ return s+Number(c.amount||0); },0);
+    const net = collected-costTotal;
+    html += '<div class="tree-node"><div class="tree-row"><span class="tree-name">'+esc(d.name)+'</span><span class="tree-meta">'+rooms.length+' room'+(rooms.length!==1?'s':'')+'</span><div class="tree-actions">'+
+      '<button data-action="add-room" data-id="'+d.id+'">Add room</button>'+
+      '<button data-action="rename-dept" data-id="'+d.id+'">Rename</button>'+
+      '<button class="btn-danger" data-action="delete-dept" data-id="'+d.id+'">Delete</button>'+
+      '</div></div><div class="tree-children">';
+
+    if(!rooms.length){ html += '<p class="tree-empty">No rooms in this department yet.</p>'; }
+    rooms.forEach(function(r){
+      const beds = state.beds.filter(function(bd){ return bd.roomId===r.id; });
+      html += '<div class="tree-node"><div class="tree-row room-row"><span class="tree-name">Room '+esc(r.number)+(r.type?' · '+esc(r.type):'')+'</span><span class="tree-meta">'+beds.length+' bed'+(beds.length!==1?'s':'')+'</span><div class="tree-actions">'+
+        '<button data-action="add-bed" data-id="'+r.id+'">Add bed</button>'+
+        '<button data-action="edit-room" data-id="'+r.id+'">Edit</button>'+
+        '<button class="btn-danger" data-action="delete-room" data-id="'+r.id+'">Delete</button>'+
+        '</div></div><div class="tree-children">';
+      if(!beds.length){ html += '<p class="tree-empty">No beds yet.</p>'; }
+      beds.forEach(function(bd){
+        const active = activeBookingForBed(bd.id);
+        let statusText, actionsHtml;
+        if(active){
+          statusText = esc(active.guest)+' · until '+fmtDate(active.checkOut);
+          actionsHtml = '<button data-action="edit-booking" data-id="'+active.id+'">Manage stay</button>';
+        } else {
+          statusText = 'Vacant'+(bd.monthlyRent?' · asking '+fmtMoney(bd.monthlyRent)+'/month':'');
+          actionsHtml = '<button class="btn-primary-outline" data-action="quick-book" data-id="'+bd.id+'">Book resident</button>';
+        }
+        html += '<div class="tree-node"><div class="tree-row bed-row"><span class="tree-name">'+esc(bd.label)+'</span><span class="tree-meta">'+statusText+'</span><div class="tree-actions">'+
+          actionsHtml+
+          '<button data-action="rename-bed" data-id="'+bd.id+'">Edit</button>'+
+          '<button class="btn-danger" data-action="delete-bed" data-id="'+bd.id+'">Delete</button>'+
+          '</div></div></div>';
+      });
+      html += '</div></div>';
+    });
+
+    html += '<div class="cost-block"><div class="tree-row" style="background:transparent;border:none;padding:6px 0;"><span class="tree-name" style="font-size:13px;">Costs &amp; balance</span><div class="tree-actions"><button data-action="add-dept-cost" data-id="'+d.id+'">Add cost</button></div></div>';
+    if(costs.length){
+      html += '<div class="table-scroll"><table class="data-table"><thead><tr><th>Cost</th><th>Date</th><th>Amount</th><th></th></tr></thead><tbody>'+
+        costs.slice().sort(function(a,b){return b.date.localeCompare(a.date);}).map(function(c){
+          return '<tr><td>'+esc(c.name)+'</td><td>'+fmtDate(c.date)+'</td><td class="mono">'+fmtMoney(c.amount)+'</td><td class="row-actions"><button class="btn-danger" data-action="delete-dept-cost" data-id="'+c.id+'">Delete</button></td></tr>';
+        }).join('') + '</tbody></table></div>';
+    }
+    html += '<div class="summary-line"><span>Rent collected: <b>'+fmtMoney(collected)+'</b></span><span>Costs: <b>'+fmtMoney(costTotal)+'</b></span><span>Net: <b class="'+(net<0?'text-burgundy':'text-sage')+'">'+fmtMoney(net)+'</b></span></div>';
+    html += '</div>';
+
+    html += '</div></div>';
+  });
+  container.innerHTML = html;
+}
+
+/* ===================== Booking modal (shared: Departments + Residents) ===================== */
+function openBookingModal(prefillBedId, editId){
+  if(!state.beds.length){ toast('Add a room and bed first, in Departments'); return; }
+  const options = [];
+  state.departments.forEach(function(d){
+    state.rooms.filter(function(r){ return r.departmentId===d.id; }).forEach(function(r){
+      state.beds.filter(function(bd){ return bd.roomId===r.id; }).forEach(function(bd){
+        options.push({ value: bd.id, label: d.name+' — Room '+r.number+' ('+bd.label+')' });
+      });
+    });
+  });
+  if(!options.length){ toast('Add a room and bed first, in Departments'); return; }
+  const editing = editId ? bookingById(editId) : null;
+  const bedDefault = prefillBedId ? bedById(prefillBedId) : null;
+  const defaults = editing || { bedId: prefillBedId||options[0].value, guest:'', phone:'', faculty:'', monthlyRent: (bedDefault&&bedDefault.monthlyRent)||'', securityDeposit:'', photo:'', checkIn: todayISO(0), checkOut: todayISO(30) };
+
+  let photoDataUrl = editing ? (editing.photo||'') : '';
+
+  openModal(editing?'Manage stay':'Book resident', [
+    { key:'bedId', label:'Room / bed', type:'select', options: options, default: prefillBedId||defaults.bedId },
+    { key:'guest', label:'Name', default: defaults.guest },
+    { key:'phone', label:'Phone', default: defaults.phone },
+    { key:'faculty', label:'Faculty', default: defaults.faculty },
+    { key:'monthlyRent', label:'Monthly rent', type:'number', step:'0.01', default: defaults.monthlyRent },
+    { key:'securityDeposit', label:'Secure money (deposit)', type:'number', step:'0.01', default: defaults.securityDeposit },
+    { key:'photo', label:'Photo', type:'file', default:'' },
+    { key:'checkIn', label:'Check-in date', type:'date', default: defaults.checkIn },
+    { key:'checkOut', label:'Check-out date', type:'date', default: defaults.checkOut }
+  ], function(vals){
+    if(!vals.guest.trim()){ toast('Enter the resident name'); return false; }
+    if(!vals.checkIn || !vals.checkOut || vals.checkOut<=vals.checkIn){ toast('Check-out must be after check-in'); return false; }
+    if(bedIsBooked(vals.bedId, vals.checkIn, vals.checkOut, editing?editing.id:null)){ toast('That bed is already booked for an overlapping period'); return false; }
+
+    function finish(photo){
+      if(editing){
+        editing.bedId=vals.bedId; editing.guest=vals.guest.trim(); editing.phone=vals.phone.trim(); editing.faculty=vals.faculty.trim();
+        editing.monthlyRent=Number(vals.monthlyRent)||0; editing.securityDeposit=Number(vals.securityDeposit)||0;
+        editing.checkIn=vals.checkIn; editing.checkOut=vals.checkOut; if(photo) editing.photo=photo;
+      } else {
+        state.bookings.push({ id:uid('bk'), bedId:vals.bedId, guest:vals.guest.trim(), phone:vals.phone.trim(), faculty:vals.faculty.trim(),
+          monthlyRent:Number(vals.monthlyRent)||0, securityDeposit:Number(vals.securityDeposit)||0, photo:photo||'', checkIn:vals.checkIn, checkOut:vals.checkOut, createdAt:new Date().toISOString() });
+      }
+      persistBookings();
+      renderApp();
+      toast(editing?'Stay updated':'Resident booked');
+    }
+    const fileInput = document.getElementById('mf_photo');
+    const file = fileInput && fileInput.files[0];
+    if(file) compressPhoto(file, finish); else finish('');
+    return true;
+  });
+}
+
+/* ===================== Page 3: Residents ===================== */
+function renderResidents(container){
+  container.innerHTML =
+    '<div class="toolbar">'+
+      '<input type="text" id="resident-search" placeholder="Search name, phone or department" value="'+esc(residentFilter.q)+'">'+
+      '<select id="resident-status">'+
+        '<option value="all">All residents</option>'+
+        '<option value="Upcoming">Upcoming</option>'+
+        '<option value="In-house">In-house</option>'+
+        '<option value="Checked out">Checked out</option>'+
+      '</select>'+
+    '</div>'+
+    '<div id="resident-table-wrap"></div>';
+  $('#resident-status').value = residentFilter.status;
+  renderResidentTable();
+}
+function renderResidentTable(){
+  const wrap=$('#resident-table-wrap'); if(!wrap) return;
+  let list = state.bookings.slice();
+  if(residentFilter.status!=='all') list=list.filter(function(b){ return status(b)===residentFilter.status; });
+  if(residentFilter.q.trim()){
+    const q=residentFilter.q.trim().toLowerCase();
+    list=list.filter(function(b){
+      const dept=deptOfBed(b.bedId);
+      return (b.guest||'').toLowerCase().includes(q) || (b.phone||'').toLowerCase().includes(q) || (dept&&dept.name.toLowerCase().includes(q));
+    });
+  }
+  list.sort(function(a,b){ return (b.checkIn||'').localeCompare(a.checkIn||''); });
+  if(!list.length){ wrap.innerHTML = emptyState('No residents found', state.bookings.length?'Try a different search or filter.':'Book your first resident from the Departments page.'); return; }
+  wrap.innerHTML = '<div class="table-scroll"><table class="data-table"><thead><tr><th>Photo</th><th>Name</th><th>Phone</th><th>Faculty</th><th>Department</th><th>Room / bed</th><th>Monthly rent</th><th>Deposit</th><th>Check-in</th><th>Check-out</th><th>Status</th><th></th></tr></thead><tbody>'+
+    list.map(residentRow).join('') + '</tbody></table></div>';
+}
+function residentRow(b){
+  const room=roomOfBed(b.bedId), bed=bedById(b.bedId), dept=deptOfBed(b.bedId), st=status(b);
+  const stClass= st==='In-house'?'tag-active':st==='Upcoming'?'tag-upcoming':'tag-done';
+  return '<tr><td>'+(b.photo?'<img class="person-photo" src="'+b.photo+'" alt="">':'<span class="photo-placeholder">No photo</span>')+'</td>'+
+    '<td>'+esc(b.guest)+'</td><td>'+esc(b.phone||'—')+'</td><td>'+esc(b.faculty||'—')+'</td>'+
+    '<td>'+(dept?esc(dept.name):'—')+'</td><td>'+(room?esc(room.number):'—')+(bed?' · '+esc(bed.label):'')+'</td>'+
+    '<td class="mono">'+fmtMoney(b.monthlyRent)+'</td><td class="mono">'+fmtMoney(b.securityDeposit)+'</td>'+
+    '<td>'+fmtDate(b.checkIn)+'</td><td>'+fmtDate(b.checkOut)+'</td><td><span class="tag '+stClass+'">'+st+'</span></td>'+
+    '<td class="row-actions"><button data-action="edit-booking" data-id="'+b.id+'">Edit</button><button class="btn-danger" data-action="delete-booking" data-id="'+b.id+'">Delete</button></td></tr>';
+}
+
+/* ===================== Page 4: Announcements ===================== */
+function renderAnnouncements(container){
+  const list = rentAnnouncements();
+  if(!list.length){ container.innerHTML = '<div class="panel">'+emptyState('No announcements','Every resident is paid up for their current month.')+'</div>'; return; }
+  container.innerHTML = '<div class="panel"><h3>Rent due</h3>'+list.map(function(a){
+    const dept = deptOfBed(a.bedId), room=roomOfBed(a.bedId), bed=bedById(a.bedId);
+    return '<div class="announce-card"><div><p class="announce-title">'+esc(a.guest)+' — '+monthLabel(a.month)+'</p>'+
+      '<p class="announce-meta">'+(dept?esc(dept.name):'—')+(room?' · Room '+esc(room.number):'')+(bed?' · '+esc(bed.label):'')+' · due '+fmtDate(a.dueDate)+'</p></div>'+
+      '<div style="display:flex;align-items:center;gap:14px;"><span class="announce-amount">'+fmtMoney(a.amount)+'</span>'+
+      '<button class="btn-primary" data-action="confirm-rent" data-id="'+a.bookingId+'" data-month="'+a.month+'" data-amount="'+a.amount+'" data-due="'+a.dueDate+'">Paid</button></div></div>';
+  }).join('') + '</div>';
+}
+
+/* ===================== Page 5: Reports ===================== */
+function renderReports(container){
+  const now = monthKey(todayISO(0));
+  container.innerHTML = '<div class="panel no-print"><h3>Accounts report</h3><div class="toolbar">'+
+    '<div class="field" style="flex:none;"><label for="report-from">From month</label><input id="report-from" type="month" value="'+now+'"></div>'+
+    '<div class="field" style="flex:none;"><label for="report-to">To month</label><input id="report-to" type="month" value="'+now+'"></div>'+
+    '<button class="btn-primary" data-action="print-report">Print report</button>'+
+    '<button data-action="refresh-report">Refresh from cloud</button>'+
+    '</div><p class="empty-body">Shows income and costs for the selected period, plus every resident currently in the house and their unpaid rent.</p>'+
+    '<p class="empty-body" id="report-sync-label"></p></div><div id="report-preview"></div>';
+  updateReportSyncLabel();
+  refreshReportsFromCloud(false);
+}
+function updateReportSyncLabel(){
+  const el=$('#report-sync-label'); if(!el) return;
+  if(lastSyncedAt){ el.textContent='Updated from Supabase at '+lastSyncedAt.toLocaleTimeString(); }
+  else if(lastSyncError){ el.textContent='Could not reach Supabase — showing data saved on this device.'; }
+  else{ el.textContent='Connecting to Supabase…'; }
+}
+async function refreshReportsFromCloud(manual){
+  const wrap=$('#report-preview');
+  if(wrap) wrap.innerHTML = emptyState('Refreshing…','Pulling the latest data from Supabase.');
+  try{
+    await loadCloud();
+    lastSyncError=null;
+    if(manual) toast('Report updated from Supabase');
+  }catch(e){
+    console.error('report refresh failed', e);
+    lastSyncError=e.message;
+    toast('Could not refresh from Supabase: '+e.message);
+  }
+  renderReportPreview();
+  updateReportSyncLabel();
+}
+function renderReportPreview(){
+  const wrap=$('#report-preview'); if(!wrap) return;
+  const fromEl=$('#report-from'), toEl=$('#report-to');
+  const fromKey = fromEl?fromEl.value:monthKey(todayISO(0));
+  const toKey = toEl?toEl.value:fromKey;
+
+  const collected = state.rentPayments.filter(function(p){ return p.month>=fromKey && p.month<=toKey; }).reduce(function(s,p){ return s+Number(p.amount||0); },0);
+  const costs = state.departmentCosts.filter(function(c){ const k=monthKey(c.date); return k>=fromKey && k<=toKey; });
+  const costTotal = costs.reduce(function(s,c){ return s+Number(c.amount||0); },0);
+  const net = collected-costTotal;
+
+  const inHouse = state.bookings.filter(function(b){ return status(b)==='In-house'; });
+  const unpaidTotal = inHouse.reduce(function(s,b){ return s+currentUnpaidRent(b, todayISO(0)); },0);
+
+  const deptRows = state.departments.map(function(d){
+    return { d:d, collected: departmentRentCollected(d.id, fromKey, toKey), cost: departmentCostTotal(d.id, fromKey, toKey) };
+  });
+
+  let html = '<div class="panel"><h3 class="print-title">'+esc(state.settings.hotelName)+' — Accounts report</h3>'+
+    '<h3>Report: '+monthLabel(fromKey)+(toKey!==fromKey?' – '+monthLabel(toKey):'')+'</h3>'+
+    '<div class="stat-grid">'+
+    '<div class="stat-card"><span class="stat-label">Collected rent</span><span class="stat-value mono">'+fmtMoney(collected)+'</span></div>'+
+    '<div class="stat-card"><span class="stat-label">Total costs</span><span class="stat-value mono">'+fmtMoney(costTotal)+'</span></div>'+
+    '<div class="stat-card"><span class="stat-label">Net balance</span><span class="stat-value mono'+(net<0?' text-burgundy':'')+'">'+fmtMoney(net)+'</span></div>'+
+    '<div class="stat-card"><span class="stat-label">Unpaid rent (all residents)</span><span class="stat-value mono text-burgundy">'+fmtMoney(unpaidTotal)+'</span></div>'+
+    '</div></div>';
+
+  html += '<div class="panel"><h3>Residents currently in house ('+inHouse.length+')</h3>';
+  if(!inHouse.length){ html += emptyState('No one currently in house',''); }
+  else{
+    html += '<div class="table-scroll"><table class="data-table"><thead><tr><th>Resident</th><th>Faculty</th><th>Phone</th><th>Department</th><th>Room / bed</th><th>Monthly rent</th><th>Unpaid</th><th>Deposit</th></tr></thead><tbody>'+
+      inHouse.map(function(b){
+        const room=roomOfBed(b.bedId), bed=bedById(b.bedId), dept=deptOfBed(b.bedId);
+        const unpaid=currentUnpaidRent(b, todayISO(0));
+        return '<tr><td>'+esc(b.guest)+'</td><td>'+esc(b.faculty||'—')+'</td><td>'+esc(b.phone||'—')+'</td><td>'+(dept?esc(dept.name):'—')+'</td><td>'+(room?esc(room.number):'—')+(bed?' · '+esc(bed.label):'')+'</td><td class="mono">'+fmtMoney(b.monthlyRent)+'</td><td class="mono'+(unpaid>0?' text-burgundy':'')+'">'+fmtMoney(unpaid)+'</td><td class="mono">'+fmtMoney(b.securityDeposit)+'</td></tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+  html += '</div>';
+
+  html += '<div class="panel"><h3>Department financial details</h3><div class="table-scroll"><table class="data-table"><thead><tr><th>Department</th><th>Rent collected</th><th>Costs</th><th>Net</th></tr></thead><tbody>'+
+    deptRows.map(function(r){
+      const net2=r.collected-r.cost;
+      return '<tr><td>'+esc(r.d.name)+'</td><td class="mono">'+fmtMoney(r.collected)+'</td><td class="mono">'+fmtMoney(r.cost)+'</td><td class="mono'+(net2<0?' text-burgundy':'')+'">'+fmtMoney(net2)+'</td></tr>';
+    }).join('') + '</tbody></table></div></div>';
+
+  html += '<div class="panel"><h3>Cost details</h3>';
+  if(!costs.length){ html += emptyState('No recorded costs','No department costs were recorded in this period.'); }
+  else{
+    html += '<div class="table-scroll"><table class="data-table"><thead><tr><th>Department</th><th>Cost</th><th>Date</th><th>Amount</th></tr></thead><tbody>'+
+      costs.slice().sort(function(a,b){return b.date.localeCompare(a.date);}).map(function(c){
+        const d=deptById(c.departmentId);
+        return '<tr><td>'+(d?esc(d.name):'—')+'</td><td>'+esc(c.name)+'</td><td>'+fmtDate(c.date)+'</td><td class="mono">'+fmtMoney(c.amount)+'</td></tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+  html += '</div>';
+
+  wrap.innerHTML = html;
+}
+
+/* ===================== Modal ===================== */
+function openModal(title, fields, onSave){
+  $('#modal-title').textContent = title;
+  const container = $('#modal-fields');
+  container.innerHTML = '';
+  fields.forEach(function(f){
+    const wrap=document.createElement('div'); wrap.className='field';
+    const label=document.createElement('label'); label.textContent=f.label; label.htmlFor='mf_'+f.key;
+    let input;
+    if(f.type==='select'){
+      input=document.createElement('select');
+      (f.options||[]).forEach(function(o){ const opt=document.createElement('option'); opt.value=o.value; opt.textContent=o.label; input.appendChild(opt); });
+      if(f.default!=null) input.value=f.default;
+    } else {
+      input=document.createElement('input');
+      input.type=f.type||'text';
+      if(f.step) input.step=f.step;
+      if(f.type==='file') input.accept='image/*';
+      if(f.type!=='file' && f.default!=null) input.value=f.default;
+    }
+    input.id='mf_'+f.key;
+    wrap.appendChild(label); wrap.appendChild(input);
+    container.appendChild(wrap);
+  });
+  $('#modal-overlay').hidden=false;
+  const firstInput=container.querySelector('input,select');
+  if(firstInput) setTimeout(function(){ firstInput.focus(); },30);
+  modalOnSave = function(){
+    const values={};
+    fields.forEach(function(f){
+      const el=document.getElementById('mf_'+f.key);
+      values[f.key] = f.type==='file' ? '' : el.value;
+    });
+    return onSave(values);
+  };
+}
+function closeModal(){ $('#modal-overlay').hidden=true; modalOnSave=null; }
+$('#modal-cancel').addEventListener('click', closeModal);
+$('#modal-save').addEventListener('click', function(){ const ok=modalOnSave?modalOnSave():true; if(ok!==false) closeModal(); });
+$('#modal-overlay').addEventListener('click', function(e){ if(e.target.id==='modal-overlay') closeModal(); });
+document.addEventListener('keydown', function(e){ if(e.key==='Escape' && !$('#modal-overlay').hidden) closeModal(); });
+
+/* ===================== Delegated actions ===================== */
+function armDelete(el, action, id){
+  if(el.dataset.armed==='1'){
+    performDelete(action, id);
+  } else {
+    $$('[data-armed="1"]').forEach(function(b){ b.textContent=b.dataset.orig||b.textContent; delete b.dataset.armed; });
+    el.dataset.armed='1'; el.dataset.orig=el.textContent; el.textContent='Confirm delete';
+    setTimeout(function(){ if(el.isConnected && el.dataset.armed==='1'){ el.textContent=el.dataset.orig; delete el.dataset.armed; } },4000);
+  }
+}
+function performDelete(action, id){
+  if(action==='delete-dept'){
+    const roomIds=state.rooms.filter(function(r){return r.departmentId===id;}).map(function(r){return r.id;});
+    const bedIds=state.beds.filter(function(b){return roomIds.includes(b.roomId);}).map(function(b){return b.id;});
+    state.departments=state.departments.filter(function(d){return d.id!==id;});
+    state.rooms=state.rooms.filter(function(r){return r.departmentId!==id;});
+    state.beds=state.beds.filter(function(b){return !roomIds.includes(b.roomId);});
+    state.bookings=state.bookings.filter(function(b){return !bedIds.includes(b.bedId);});
+    state.departmentCosts=state.departmentCosts.filter(function(c){return c.departmentId!==id;});
+    persistStructure();
+  } else if(action==='delete-room'){
+    const bedIds=state.beds.filter(function(b){return b.roomId===id;}).map(function(b){return b.id;});
+    state.rooms=state.rooms.filter(function(r){return r.id!==id;});
+    state.beds=state.beds.filter(function(b){return b.roomId!==id;});
+    state.bookings=state.bookings.filter(function(b){return !bedIds.includes(b.bedId);});
+    persistStructure();
+  } else if(action==='delete-bed'){
+    state.beds=state.beds.filter(function(b){return b.id!==id;});
+    state.bookings=state.bookings.filter(function(b){return b.bedId!==id;});
+    persistStructure();
+  } else if(action==='delete-booking'){
+    state.bookings=state.bookings.filter(function(b){return b.id!==id;});
+    persistBookings();
+  } else if(action==='delete-dept-cost'){
+    state.departmentCosts=state.departmentCosts.filter(function(c){return c.id!==id;});
+    persistDepartmentCosts();
+  }
+  toast('Deleted');
+  renderApp();
+}
+function onContentClick(e){
+  const el=e.target.closest('[data-action]');
+  if(!el) return;
+  const action=el.dataset.action, id=el.dataset.id;
+  if(action.indexOf('delete-')===0){ armDelete(el, action, id); return; }
+
+  if(action==='save-settings'){
+    const name=$('#set-hotel-name').value.trim()||'Om Amr';
+    const currency=$('#set-currency').value.trim()||'$';
+    state.settings.hotelName=name; state.settings.currency=currency;
+    persistSettings();
+    $('#hotel-name-label').textContent=name; document.title=name+' — Hotel Management';
+    renderApp(); toast('Settings saved');
+    return;
+  }
+  if(action==='print-report'){ refreshReportsFromCloud(false).then(function(){ setTimeout(function(){ window.print(); },150); }); return; }
+  if(action==='refresh-report'){ refreshReportsFromCloud(true); return; }
+  if(action==='confirm-rent'){ confirmRentPayment(id, el.dataset.month, el.dataset.amount, el.dataset.due); return; }
+
+  if(action==='add-dept'){
+    openModal('Add department', [{ key:'name', label:'Department name (e.g. Main building, Garden wing)', default:'' }], function(vals){
+      if(!vals.name.trim()){ toast('Enter a department name'); return false; }
+      state.departments.push({ id:uid('dept'), name:vals.name.trim() });
+      persistStructure(); renderApp(); toast('Department added');
+    });
+  } else if(action==='rename-dept'){
+    const d=deptById(id); if(!d) return;
+    openModal('Rename department', [{ key:'name', label:'Department name', default:d.name }], function(vals){
+      if(!vals.name.trim()) return false;
+      d.name=vals.name.trim(); persistStructure(); renderApp();
+    });
+  } else if(action==='add-room'){
+    const d=deptById(id);
+    openModal('Add room'+(d?' to '+d.name:''), [
+      { key:'number', label:'Room number', default:'' },
+      { key:'type', label:'Room type (optional)', default:'' }
+    ], function(vals){
+      if(!vals.number.trim()){ toast('Enter a room number'); return false; }
+      state.rooms.push({ id:uid('room'), departmentId:id, number:vals.number.trim(), type:vals.type.trim() });
+      persistStructure(); renderApp(); toast('Room added');
+    });
+  } else if(action==='edit-room'){
+    const r=roomById(id); if(!r) return;
+    openModal('Edit room', [
+      { key:'number', label:'Room number', default:r.number },
+      { key:'type', label:'Room type (optional)', default:r.type||'' }
+    ], function(vals){
+      if(!vals.number.trim()) return false;
+      r.number=vals.number.trim(); r.type=vals.type.trim(); persistStructure(); renderApp();
+    });
+  } else if(action==='add-bed'){
+    const r=roomById(id);
+    const count=state.beds.filter(function(b){return b.roomId===id;}).length;
+    openModal('Add bed'+(r?' to room '+r.number:''), [
+      { key:'label', label:'Bed label', default:'Bed '+(count+1) },
+      { key:'monthlyRent', label:'Asking monthly rent (optional)', type:'number', step:'0.01', default:'' }
+    ], function(vals){
+      state.beds.push({ id:uid('bed'), roomId:id, label:vals.label.trim()||('Bed '+(count+1)), monthlyRent: vals.monthlyRent?Number(vals.monthlyRent):0 });
+      persistStructure(); renderApp(); toast('Bed added');
+    });
+  } else if(action==='rename-bed'){
+    const b=bedById(id); if(!b) return;
+    openModal('Edit bed', [
+      { key:'label', label:'Bed label', default:b.label },
+      { key:'monthlyRent', label:'Asking monthly rent (optional)', type:'number', step:'0.01', default:b.monthlyRent||'' }
+    ], function(vals){
+      if(!vals.label.trim()) return false;
+      b.label=vals.label.trim(); b.monthlyRent=vals.monthlyRent?Number(vals.monthlyRent):0;
+      persistStructure(); renderApp();
+    });
+  } else if(action==='add-dept-cost'){
+    openModal('Add department cost', [
+      { key:'name', label:'Cost name', default:'' },
+      { key:'amount', label:'Amount', type:'number', step:'0.01', default:'' },
+      { key:'date', label:'Date', type:'date', default: todayISO(0) }
+    ], function(vals){
+      if(!vals.name.trim()){ toast('Enter a cost name'); return false; }
+      if(!vals.amount || Number(vals.amount)<=0){ toast('Enter an amount'); return false; }
+      state.departmentCosts.push({ id:uid('cost'), departmentId:id, name:vals.name.trim(), amount:Number(vals.amount), date:vals.date, createdAt:new Date().toISOString() });
+      persistDepartmentCosts(); renderApp(); toast('Cost added');
+    });
+  } else if(action==='quick-book'){
+    openBookingModal(id, null);
+  } else if(action==='edit-booking'){
+    openBookingModal(null, id);
+  }
+}
+function onContentInput(e){ if(e.target.id==='resident-search'){ residentFilter.q=e.target.value; renderResidentTable(); } }
+function onContentChange(e){
+  if(e.target.id==='resident-status'){ residentFilter.status=e.target.value; renderResidentTable(); }
+  if(e.target.id==='report-from' || e.target.id==='report-to'){ renderReportPreview(); }
+}
+$('#content').addEventListener('click', onContentClick);
+$('#content').addEventListener('input', onContentInput);
+$('#content').addEventListener('change', onContentChange);
+
+/* ===================== Boot ===================== */
+(async function boot(){
+  const ok = await restoreSession();
+  if(ok){ await enterApp(); }
+  else{ $('#login-email').focus(); }
+})();
+</script>
+</body>
+</html>
